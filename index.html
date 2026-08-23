@@ -6,7 +6,7 @@
   <title>ระบบลงข้อมูลเหตุการณ์ไม่ปกติจากภัยธรรมชาติในพื้นที่ กฟน.3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700&family=Sarabun:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root{
       --bg:#f5f2fa; --surface:#ffffff; --surface-2:#f7f4fb;
@@ -20,9 +20,9 @@
       --neutral:#8577a2; --neutral-tint:#ece7f4;
       --shadow: 0 1px 2px rgba(45,20,70,.07), 0 8px 24px -12px rgba(45,20,70,.22);
       --radius: 14px;
-      --font-display:'Kanit','Noto Sans Thai',sans-serif;
-      --font-body:'Sarabun','Noto Sans Thai',sans-serif;
-      --font-mono:'JetBrains Mono', ui-monospace, monospace;
+      --font-display:'Anuphan','Noto Sans Thai',sans-serif;
+      --font-body:'Anuphan','Noto Sans Thai',sans-serif;
+      --font-mono:'Anuphan', ui-monospace, monospace;
     }
     *{box-sizing:border-box;}
     html,body{margin:0;padding:0;}
@@ -235,6 +235,7 @@
     .empty-state{padding:34px 16px;text-align:center;color:var(--ink-faint);font-size:.9rem;}
 
     footer.foot{text-align:center;color:var(--ink-faint);font-size:.8rem;margin-top:34px;}
+    .foot-credit{text-align:right;margin-top:6px;font-size:.76rem;color:var(--ink-faint);}
 
     /* ---- home screen ---- */
     .home-screen{padding:26px 0 10px;}
@@ -294,7 +295,6 @@
   <section class="home-screen" id="homeScreen">
     <div class="home-intro">
       <h2>เลือกหัวข้อที่ต้องการลงข้อมูล</h2>
-      <p>ข้อมูลทั้งสองหัวข้อบันทึกลงสเปรดชีตเดียวกัน คนละชีต</p>
     </div>
     <div class="home-cards">
       <button type="button" class="home-card" data-module="flood">
@@ -304,7 +304,14 @@
         <div class="home-card-cta">เข้าสู่หัวข้อนี้ →</div>
       </button>
       <button type="button" class="home-card accent-amber" data-module="pole">
-        <div class="home-card-icon">🪵</div>
+        <div class="home-card-icon">
+          <svg viewBox="0 0 32 32" width="30" height="30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <line x1="4" y1="27" x2="29" y2="27" stroke="var(--ink-faint)" stroke-width="2" stroke-linecap="round" opacity=".35"/>
+            <line x1="8" y1="25" x2="25" y2="6" stroke="#8a5a2b" stroke-width="4" stroke-linecap="round"/>
+            <line x1="18" y1="12" x2="24" y2="16" stroke="#8a5a2b" stroke-width="3" stroke-linecap="round"/>
+            <path d="M17 6 L21 6 L15 15 L20 15 L12 26 L15 17 L11 17 Z" fill="var(--amber-strong)"/>
+          </svg>
+        </div>
         <div class="home-card-title">เหตุการณ์เสาล้ม</div>
         <div class="home-card-desc">บันทึกเหตุการณ์เสาไฟฟ้าแรงสูง/แรงต่ำล้ม อุปกรณ์ที่เสียหาย และผู้ใช้ไฟที่ได้รับผลกระทบ</div>
         <div class="home-card-cta">เข้าสู่หัวข้อนี้ →</div>
@@ -1067,7 +1074,10 @@
 
   </section><!-- /modulePole -->
 
-  <footer class="foot">ข้อมูลที่บันทึกจะถูกเพิ่มเป็นแถวใหม่ในชีตข้อมูลโดยตรง</footer>
+  <footer class="foot">
+    <div>ข้อมูลที่บันทึกจะถูกเพิ่มเป็นแถวใหม่ในชีตข้อมูลโดยตรง</div>
+    <div class="foot-credit">แผนกควบคุมระบบไฟฟ้า กองปฏิบัติการ (กฟน.3)</div>
+  </footer>
 </div>
 
 <script>
@@ -1078,7 +1088,7 @@
 
   // วาง URL ของ Google Apps Script Web app ที่ deploy ไว้ตรงนี้ (ต้องลงท้ายด้วย /exec)
   // ดูวิธี deploy ได้จากคอมเมนต์ด้านบนของไฟล์ Code.gs ที่ให้มาคู่กัน
-  var WEBAPP_URL = "วาง_URL_ของ_Web_app_ที่_deploy_แล้วตรงนี้";
+  var WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyWL3Epa4AJEw3nJNfq-Tp7i4YhYfVsIHIJgAdHV3r3w16kM5pK1Omm70k9eRzEIiQpeA/exec";
 
   var state = {
     allEvents: [],
