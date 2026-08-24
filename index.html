@@ -940,8 +940,26 @@
             <legend>รายละเอียดเหตุการณ์</legend>
             <div class="row2">
               <div class="field">
-                <label for="poleEquipment">อุปกรณ์ <span class="opt">(รหัส/หมายเลขอุปกรณ์ ถ้าทราบ)</span></label>
-                <input type="text" id="poleEquipment" placeholder="เช่น PEA06VB-01">
+                <label for="poleVoltage">ระดับแรงดัน (kV) <span class="opt">(ถ้าทราบ)</span></label>
+                <select id="poleVoltage">
+                  <option value="" selected>ไม่ระบุ</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="poleStation">สถานีไฟฟ้า <span class="opt">(ถ้าทราบ)</span></label>
+                <select id="poleStation">
+                  <option value="" selected>ไม่ระบุ</option>
+                </select>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="poleEquipment">รหัสอุปกรณ์ป้องกัน <span class="opt">(ถ้าทราบ)</span></label>
+                <select id="poleEquipment">
+                  <option value="" selected>ไม่ระบุ</option>
+                  <option value="D/F">D/F (ไม่มีรหัสตายตัว — ระบุเอง)</option>
+                </select>
+                <input type="text" id="poleEquipmentOther" style="margin-top:8px;display:none;" placeholder="ระบุรหัส D/F หรือชื่อสถานที่ เช่น บ้านหนองมะโมง">
               </div>
               <div class="field">
                 <label for="poleWorkType">การทำงาน <span class="opt">(ถ้าทราบ)</span></label>
@@ -1226,7 +1244,7 @@
     moduleFlood.classList.toggle("active", name === "flood");
     modulePole.classList.toggle("active", name === "pole");
     if(name === "flood") loadSummary();
-    if(name === "pole") loadPoleSummary();
+    if(name === "pole"){ loadPoleSummary(); loadPoleEquipmentOptions(); }
   }
   document.querySelectorAll(".home-card").forEach(function(btn){
     btn.addEventListener("click", function(){ showModule(btn.dataset.module); });
@@ -1970,6 +1988,79 @@
     document.getElementById("poleWeatherOther").style.display = (this.value === "อื่นๆ") ? "block" : "none";
   });
 
+  // ==== ระดับแรงดัน → สถานีไฟฟ้า → รหัสอุปกรณ์ป้องกัน (ดรอปดาวน์ต่อเนื่อง อ้างอิงชีต "ข้อมูล 2") ====
+  var poleEquipmentRows = [];
+  var poleEquipmentLoaded = false;
+
+  function uniqueSorted(arr){
+    var seen = {};
+    var out = [];
+    arr.forEach(function(v){ if(v && !seen[v]){ seen[v] = true; out.push(v); } });
+    return out.sort(function(a,b){ return a.localeCompare(b, "th"); });
+  }
+
+  function loadPoleEquipmentOptions(){
+    if(poleEquipmentLoaded || !isConfigured()) return;
+    fetch(WEBAPP_URL + "?type=equipment")
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        if(data && data.error) throw new Error(data.error);
+        poleEquipmentRows = (data && data.rows) || [];
+        poleEquipmentLoaded = true;
+        renderPoleVoltageOptions();
+      })
+      .catch(function(err){
+        console.error("โหลดรายชื่อระดับแรงดัน/สถานีไฟฟ้า/รหัสอุปกรณ์ไม่สำเร็จ:", err);
+      });
+  }
+
+  function renderPoleVoltageOptions(){
+    var voltages = uniqueSorted(poleEquipmentRows.map(function(r){ return r.voltage; }));
+    var sel = document.getElementById("poleVoltage");
+    var prevVal = sel.value;
+    sel.innerHTML = '<option value="" selected>ไม่ระบุ</option>' +
+      voltages.map(function(v){ return '<option value="'+escapeHtml(v)+'">'+escapeHtml(v)+'</option>'; }).join("");
+    if(voltages.indexOf(prevVal) !== -1) sel.value = prevVal;
+    renderPoleStationOptions();
+  }
+
+  function renderPoleStationOptions(){
+    var voltage = document.getElementById("poleVoltage").value;
+    var filtered = voltage ? poleEquipmentRows.filter(function(r){ return r.voltage === voltage; }) : poleEquipmentRows;
+    var stations = uniqueSorted(filtered.map(function(r){ return r.station; }));
+    var sel = document.getElementById("poleStation");
+    var prevVal = sel.value;
+    sel.innerHTML = '<option value="" selected>ไม่ระบุ</option>' +
+      stations.map(function(s){ return '<option value="'+escapeHtml(s)+'">'+escapeHtml(s)+'</option>'; }).join("");
+    if(stations.indexOf(prevVal) !== -1) sel.value = prevVal;
+    renderPoleEquipmentCodeOptions();
+  }
+
+  function renderPoleEquipmentCodeOptions(){
+    var voltage = document.getElementById("poleVoltage").value;
+    var station = document.getElementById("poleStation").value;
+    var filtered = poleEquipmentRows;
+    if(voltage){ filtered = filtered.filter(function(r){ return r.voltage === voltage; }); }
+    if(station){ filtered = filtered.filter(function(r){ return r.station === station; }); }
+    var codes = uniqueSorted(filtered.map(function(r){ return r.code; }));
+    var sel = document.getElementById("poleEquipment");
+    var prevVal = sel.value;
+    sel.innerHTML = '<option value="" selected>ไม่ระบุ</option>' +
+      codes.map(function(c){ return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>'; }).join("") +
+      '<option value="D/F">D/F (ไม่มีรหัสตายตัว — ระบุเอง)</option>';
+    if(codes.indexOf(prevVal) !== -1 || prevVal === "D/F"){ sel.value = prevVal; }
+    togglePoleEquipmentOther();
+  }
+
+  function togglePoleEquipmentOther(){
+    var isDF = document.getElementById("poleEquipment").value === "D/F";
+    document.getElementById("poleEquipmentOther").style.display = isDF ? "block" : "none";
+  }
+
+  document.getElementById("poleVoltage").addEventListener("change", renderPoleStationOptions);
+  document.getElementById("poleStation").addEventListener("change", renderPoleEquipmentCodeOptions);
+  document.getElementById("poleEquipment").addEventListener("change", togglePoleEquipmentOther);
+
   var poleRemainingTouched = false;
   document.getElementById("poleCustRemaining").addEventListener("input", function(){ poleRemainingTouched = true; });
   document.getElementById("poleCustAffected").addEventListener("input", function(){
@@ -1988,13 +2079,24 @@
       return;
     }
 
+    var equipmentCode = document.getElementById("poleEquipment").value;
+    var equipmentValue = equipmentCode;
+    if(equipmentCode === "D/F"){
+      var dfText = document.getElementById("poleEquipmentOther").value.trim();
+      if(!dfText){
+        polePillMsg("err", "กรุณาระบุรหัส D/F หรือชื่อสถานที่ในช่องที่ปรากฏ");
+        return;
+      }
+      equipmentValue = "D/F " + dfText;
+    }
+
     var payload = {
       formType: "pole",
       peaArea: document.getElementById("poleArea").value.trim(),
       province: document.getElementById("poleProvince").value,
       date: document.getElementById("poleDate").value,
       time: document.getElementById("poleTime").value,
-      equipment: document.getElementById("poleEquipment").value.trim(),
+      equipment: equipmentValue,
       workType: document.getElementById("poleWorkType").value.trim(),
       weather: document.getElementById("poleWeather").value,
       weatherOther: document.getElementById("poleWeatherOther").value.trim(),
@@ -2032,6 +2134,9 @@
         poleForm.reset();
         poleRemainingTouched = false;
         document.getElementById("poleWeatherOther").style.display = "none";
+        renderPoleVoltageOptions();
+        document.getElementById("poleEquipmentOther").value = "";
+        document.getElementById("poleEquipmentOther").style.display = "none";
         btnPoleSubmit.disabled = false;
         btnPoleSubmit.textContent = "บันทึกรายงาน";
         loadPoleSummary();
