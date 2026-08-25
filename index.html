@@ -419,81 +419,6 @@
         <fieldset>
           <legend>ข้อมูลเบื้องต้น</legend>
           <div class="field">
-            <label for="pea">กฟส. (สาขาที่รับผิดชอบ) <span class="opt">(ถ้าทราบ)</span></label>
-            <select id="pea">
-              <option value="" selected>ไม่ระบุ</option>
-              <option>กฟจ.ลพบุรี</option>
-              <option>กฟส.ท่าวุ้ง</option>
-              <option>กฟจ.นครสวรรค์</option>
-              <option>กฟส.หนองบัว</option>
-              <option>กฟส.ท่าตะโก</option>
-              <option>กฟส.ชุมแสง</option>
-              <option>กฟส.บรรพตพิสัย</option>
-              <option>กฟส.พยุหะคีรี</option>
-              <option>กฟส.ไพศาลี</option>
-              <option>กฟส.เก้าเลี้ยว</option>
-              <option>กฟส.โกรกพระ</option>
-              <option>กฟจ.อุทัยธานี</option>
-              <option>กฟส.หนองฉาง</option>
-              <option>กฟส.ลานสัก</option>
-              <option>กฟส.บ้านไร่</option>
-              <option>กฟส.ทัพทัน</option>
-              <option>กฟส.สว่างอารมณ์</option>
-              <option>กฟส.เมืองการุ้ง</option>
-              <option>กฟส.หนองขาหย่าง</option>
-              <option>กฟส.ห้วยคต</option>
-              <option>กฟจ.ชัยนาท</option>
-              <option>กฟส.สรรคบุรี</option>
-              <option>กฟส.วัดสิงห์</option>
-              <option>กฟส.มโนรมย์</option>
-              <option>กฟส.หันคา</option>
-              <option>กฟส.สรรพยา</option>
-              <option>กฟส.เนินขาม</option>
-              <option>กฟส.หนองมะโมง</option>
-              <option>กฟจ.สิงห์บุรี</option>
-              <option>กฟส.พรหมบุรี</option>
-              <option>กฟส.อินทร์บุรี</option>
-              <option>กฟส.ค่ายบางระจัน</option>
-              <option>กฟส.บางระจัน</option>
-              <option>กฟส.ท่าช้าง</option>
-              <option>กฟจ.เพชรบูรณ์</option>
-              <option>กฟส.ชนแดน</option>
-              <option>กฟส.เขาค้อ</option>
-              <option>กฟส.วังโป่ง</option>
-              <option>กฟส.วังชมภู</option>
-              <option>กฟส.หนองไผ่</option>
-              <option>กฟส.วิเชียรบุรี</option>
-              <option>กฟส.ศรีเทพ</option>
-              <option>กฟส.บึงสามพัน</option>
-              <option>กฟส.พุเตย</option>
-              <option>กฟส.โคกสำโรง</option>
-              <option>กฟส.หนองม่วง</option>
-              <option>กฟส.บ้านหมี่</option>
-              <option>กฟส.สระโบสถ์</option>
-              <option>กฟส.โคกเจริญ</option>
-              <option>กฟส.หล่มสัก</option>
-              <option>กฟส.หล่มเก่า</option>
-              <option>กฟส.แคมป์สน</option>
-              <option>กฟส.น้ำหนาว</option>
-              <option>กฟส.บ้านกลาง</option>
-              <option>กฟส.ตาดกลอย</option>
-              <option>กฟส.ตาคลี</option>
-              <option>กฟส.ตากฟ้า</option>
-              <option>กฟส.หัวหวาย</option>
-              <option>กฟส.ช่องแค</option>
-              <option>กฟส.ลาดยาว</option>
-              <option>กฟส.บ้านหนองเบน</option>
-              <option>กฟส.แม่วงก์</option>
-              <option>กฟส.ชุมตาบง</option>
-              <option>กฟส.แม่เปิน</option>
-              <option>กฟส.พัฒนานิคม</option>
-              <option>กฟส.บ้านแก่งเสือเต้น</option>
-              <option>กฟส.ชัยบาดาล</option>
-              <option>กฟส.ท่าหลวง</option>
-              <option>กฟส.ลำสนธิ</option>
-            </select>
-          </div>
-          <div class="field">
             <label for="province">จังหวัดที่เกิดเหตุ *</label>
             <select id="province" required>
               <option value="" disabled selected>เลือกจังหวัด</option>
@@ -503,6 +428,12 @@
               <option>ลพบุรี</option>
               <option>สิงห์บุรี</option>
               <option>เพชรบูรณ์</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pea">กฟส. (สาขาที่รับผิดชอบ) <span class="opt">(ถ้าทราบ)</span></label>
+            <select id="pea" disabled>
+              <option value="" selected>เลือกจังหวัดก่อน</option>
             </select>
           </div>
           <div class="row2">
@@ -858,81 +789,6 @@
           <fieldset>
             <legend>ข้อมูลเบื้องต้น</legend>
             <div class="field">
-              <label for="poleArea">พื้นที่ กฟฟ. <span class="opt">(ถ้าทราบ)</span></label>
-              <select id="poleArea">
-                <option value="" selected>ไม่ระบุ</option>
-                <option>กฟจ.ลพบุรี</option>
-                <option>กฟส.ท่าวุ้ง</option>
-                <option>กฟจ.นครสวรรค์</option>
-                <option>กฟส.หนองบัว</option>
-                <option>กฟส.ท่าตะโก</option>
-                <option>กฟส.ชุมแสง</option>
-                <option>กฟส.บรรพตพิสัย</option>
-                <option>กฟส.พยุหะคีรี</option>
-                <option>กฟส.ไพศาลี</option>
-                <option>กฟส.เก้าเลี้ยว</option>
-                <option>กฟส.โกรกพระ</option>
-                <option>กฟจ.อุทัยธานี</option>
-                <option>กฟส.หนองฉาง</option>
-                <option>กฟส.ลานสัก</option>
-                <option>กฟส.บ้านไร่</option>
-                <option>กฟส.ทัพทัน</option>
-                <option>กฟส.สว่างอารมณ์</option>
-                <option>กฟส.เมืองการุ้ง</option>
-                <option>กฟส.หนองขาหย่าง</option>
-                <option>กฟส.ห้วยคต</option>
-                <option>กฟจ.ชัยนาท</option>
-                <option>กฟส.สรรคบุรี</option>
-                <option>กฟส.วัดสิงห์</option>
-                <option>กฟส.มโนรมย์</option>
-                <option>กฟส.หันคา</option>
-                <option>กฟส.สรรพยา</option>
-                <option>กฟส.เนินขาม</option>
-                <option>กฟส.หนองมะโมง</option>
-                <option>กฟจ.สิงห์บุรี</option>
-                <option>กฟส.พรหมบุรี</option>
-                <option>กฟส.อินทร์บุรี</option>
-                <option>กฟส.ค่ายบางระจัน</option>
-                <option>กฟส.บางระจัน</option>
-                <option>กฟส.ท่าช้าง</option>
-                <option>กฟจ.เพชรบูรณ์</option>
-                <option>กฟส.ชนแดน</option>
-                <option>กฟส.เขาค้อ</option>
-                <option>กฟส.วังโป่ง</option>
-                <option>กฟส.วังชมภู</option>
-                <option>กฟส.หนองไผ่</option>
-                <option>กฟส.วิเชียรบุรี</option>
-                <option>กฟส.ศรีเทพ</option>
-                <option>กฟส.บึงสามพัน</option>
-                <option>กฟส.พุเตย</option>
-                <option>กฟส.โคกสำโรง</option>
-                <option>กฟส.หนองม่วง</option>
-                <option>กฟส.บ้านหมี่</option>
-                <option>กฟส.สระโบสถ์</option>
-                <option>กฟส.โคกเจริญ</option>
-                <option>กฟส.หล่มสัก</option>
-                <option>กฟส.หล่มเก่า</option>
-                <option>กฟส.แคมป์สน</option>
-                <option>กฟส.น้ำหนาว</option>
-                <option>กฟส.บ้านกลาง</option>
-                <option>กฟส.ตาดกลอย</option>
-                <option>กฟส.ตาคลี</option>
-                <option>กฟส.ตากฟ้า</option>
-                <option>กฟส.หัวหวาย</option>
-                <option>กฟส.ช่องแค</option>
-                <option>กฟส.ลาดยาว</option>
-                <option>กฟส.บ้านหนองเบน</option>
-                <option>กฟส.แม่วงก์</option>
-                <option>กฟส.ชุมตาบง</option>
-                <option>กฟส.แม่เปิน</option>
-                <option>กฟส.พัฒนานิคม</option>
-                <option>กฟส.บ้านแก่งเสือเต้น</option>
-                <option>กฟส.ชัยบาดาล</option>
-                <option>กฟส.ท่าหลวง</option>
-                <option>กฟส.ลำสนธิ</option>
-              </select>
-            </div>
-            <div class="field">
               <label for="poleProvince">จังหวัดที่เกิดเหตุ *</label>
               <select id="poleProvince" required>
                 <option value="" disabled selected>เลือกจังหวัด</option>
@@ -942,6 +798,12 @@
                 <option>ลพบุรี</option>
                 <option>สิงห์บุรี</option>
                 <option>เพชรบูรณ์</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="poleArea">พื้นที่ กฟฟ. <span class="opt">(ถ้าทราบ)</span></label>
+              <select id="poleArea" disabled>
+                <option value="" selected>เลือกจังหวัดก่อน</option>
               </select>
             </div>
             <div class="row2">
@@ -1260,6 +1122,48 @@
   "use strict";
 
   var PROVINCE_ORDER = ["เพชรบูรณ์","นครสวรรค์","อุทัยธานี","ชัยนาท","สิงห์บุรี","ลพบุรี"];
+
+  // รายชื่อ กฟฟ./กฟส. ที่รับผิดชอบ แยกตามจังหวัด ใช้ทำดรอปดาวน์แบบเลือกจังหวัดก่อนแล้วค่อยกรองพื้นที่ กฟฟ.
+  var PROVINCE_PEA_MAP = {
+    "นครสวรรค์": ["กฟจ.นครสวรรค์","กฟส.หนองบัว","กฟส.ท่าตะโก","กฟส.ชุมแสง","กฟส.บรรพตพิสัย","กฟส.พยุหะคีรี","กฟส.ไพศาลี","กฟส.เก้าเลี้ยว","กฟส.โกรกพระ","กฟส.ตาคลี","กฟส.ตากฟ้า","กฟส.หัวหวาย","กฟส.ช่องแค","กฟส.ลาดยาว","กฟส.บ้านหนองเบน","กฟส.แม่วงก์","กฟส.ชุมตาบง","กฟส.แม่เปิน"],
+    "ลพบุรี": ["กฟจ.ลพบุรี","กฟส.ท่าวุ้ง","กฟส.โคกสำโรง","กฟส.หนองม่วง","กฟส.บ้านหมี่","กฟส.สระโบสถ์","กฟส.โคกเจริญ","กฟส.พัฒนานิคม","กฟส.บ้านแก่งเสือเต้น","กฟส.ชัยบาดาล","กฟส.ท่าหลวง","กฟส.ลำสนธิ"],
+    "ชัยนาท": ["กฟจ.ชัยนาท","กฟส.สรรคบุรี","กฟส.วัดสิงห์","กฟส.มโนรมย์","กฟส.หันคา","กฟส.สรรพยา","กฟส.เนินขาม","กฟส.หนองมะโมง"],
+    "อุทัยธานี": ["กฟจ.อุทัยธานี","กฟส.หนองฉาง","กฟส.ลานสัก","กฟส.บ้านไร่","กฟส.ทัพทัน","กฟส.สว่างอารมณ์","กฟส.เมืองการุ้ง","กฟส.หนองขาหย่าง","กฟส.ห้วยคต"],
+    "เพชรบูรณ์": ["กฟจ.เพชรบูรณ์","กฟส.ชนแดน","กฟส.เขาค้อ","กฟส.วังโป่ง","กฟส.วังชมภู","กฟส.หนองไผ่","กฟส.วิเชียรบุรี","กฟส.ศรีเทพ","กฟส.บึงสามพัน","กฟส.พุเตย","กฟส.หล่มสัก","กฟส.หล่มเก่า","กฟส.แคมป์สน","กฟส.น้ำหนาว","กฟส.บ้านกลาง","กฟส.ตาดกลอย"],
+    "สิงห์บุรี": ["กฟจ.สิงห์บุรี","กฟส.พรหมบุรี","กฟส.อินทร์บุรี","กฟส.ค่ายบางระจัน","กฟส.บางระจัน","กฟส.ท่าช้าง"]
+  };
+
+  // เลือกจังหวัดก่อน แล้วค่อยกรอง select กฟฟ./กฟส. ให้เหลือเฉพาะสาขาที่ขึ้นกับจังหวัดนั้น
+  function wireProvincePeaCascade(provinceSel, peaSel){
+    function setOptions(list, placeholderText, disabled){
+      peaSel.innerHTML = "";
+      var opt0 = document.createElement("option");
+      opt0.value = "";
+      opt0.selected = true;
+      opt0.textContent = placeholderText;
+      peaSel.appendChild(opt0);
+      list.forEach(function(name){
+        var opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        peaSel.appendChild(opt);
+      });
+      peaSel.disabled = disabled;
+    }
+    function refresh(){
+      var list = PROVINCE_PEA_MAP[provinceSel.value];
+      if(list){
+        setOptions(list, "ไม่ระบุ", false);
+      } else {
+        setOptions([], "เลือกจังหวัดก่อน", true);
+      }
+    }
+    provinceSel.addEventListener("change", refresh);
+    if(provinceSel.form){
+      provinceSel.form.addEventListener("reset", function(){ setTimeout(refresh, 0); });
+    }
+    refresh();
+  }
 
   // วาง URL ของ Google Apps Script Web app ที่ deploy ไว้ตรงนี้ (ต้องลงท้ายด้วย /exec)
   // ดูวิธี deploy ได้จากคอมเมนต์ด้านบนของไฟล์ Code.gs ที่ให้มาคู่กัน
@@ -1750,6 +1654,7 @@
 
   var form = document.getElementById("reportForm");
   var btnSubmit = document.getElementById("btnSubmit");
+  wireProvincePeaCascade(document.getElementById("province"), document.getElementById("pea"));
 
   form.addEventListener("submit", function(ev){
     ev.preventDefault();
@@ -2165,6 +2070,7 @@
   });
 
   var poleForm = document.getElementById("poleForm");
+  wireProvincePeaCascade(document.getElementById("poleProvince"), document.getElementById("poleArea"));
   var btnPoleSubmit = document.getElementById("btnPoleSubmit");
 
   poleForm.addEventListener("submit", function(ev){
