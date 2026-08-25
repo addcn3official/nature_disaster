@@ -145,6 +145,7 @@
     .stat-card.accent-green{border-top-color:var(--normal);}
     .stat-card.accent-pending{border-top-color:var(--pending);cursor:pointer;}
     .stat-card-head{display:flex;align-items:center;gap:7px;font-size:.82rem;color:var(--ink-muted);font-weight:600;margin-bottom:8px;}
+    .stat-card-head .pole-icon{display:inline-flex;align-items:center;}
     .stat-card-num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:1.7rem;font-weight:700;color:var(--ink);line-height:1.1;}
     .stat-card-caption{margin-top:6px;font-size:.78rem;color:var(--ink-faint);}
     .stat-select{width:100%;margin-top:8px;font-family:var(--font-body);font-size:.84rem;padding:6px 8px;border-radius:7px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink);}
@@ -222,18 +223,13 @@
     .map-legend-note span{display:inline-flex;align-items:center;gap:5px;}
 
     .map-popup{
-      position:absolute;transform:translate(-50%,-100%);margin-top:-16px;
-      min-width:172px;background:var(--surface);border:1px solid var(--border-strong);border-radius:11px;
+      position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+      min-width:172px;max-width:calc(100% - 24px);background:var(--surface);border:1px solid var(--border-strong);border-radius:11px;
       box-shadow:0 12px 28px rgba(36,27,51,.28);padding:11px 13px;font-size:.8rem;color:var(--ink);
       z-index:30;display:none;pointer-events:none;
     }
     .map-popup.show{display:block;}
     .map-popup-close,.map-popup-link{pointer-events:auto;}
-    .map-popup::after{
-      content:"";position:absolute;left:50%;bottom:-6px;width:11px;height:11px;background:var(--surface);
-      border-right:1px solid var(--border-strong);border-bottom:1px solid var(--border-strong);
-      transform:translateX(-50%) rotate(45deg);
-    }
     .map-popup-close{position:absolute;top:5px;right:7px;border:none;background:transparent;color:var(--ink-faint);font-size:.72rem;cursor:pointer;padding:3px;line-height:1;}
     .map-popup-title{font-family:var(--font-display);font-weight:700;font-size:.88rem;color:var(--water-strong);margin:0 16px 7px 0;white-space:nowrap;}
     .map-popup-row{display:flex;justify-content:space-between;gap:14px;padding:3px 0;color:var(--ink-muted);white-space:nowrap;}
@@ -1052,11 +1048,17 @@
             <div class="row2">
               <div class="field">
                 <label for="poleFirstRestore">เวลาจ่ายไฟครั้งแรก <span class="opt">(ถ้ามี)</span></label>
-                <input type="time" id="poleFirstRestore">
+                <div class="row2">
+                  <input type="date" id="poleFirstRestoreDate" aria-label="วันที่จ่ายไฟครั้งแรก">
+                  <input type="time" id="poleFirstRestore" aria-label="เวลาจ่ายไฟครั้งแรก">
+                </div>
               </div>
               <div class="field">
                 <label for="poleFullRestore">เวลาจ่ายไฟให้เต็มระบบ <span class="opt">(ถ้ามี)</span></label>
-                <input type="time" id="poleFullRestore">
+                <div class="row2">
+                  <input type="date" id="poleFullRestoreDate" aria-label="วันที่จ่ายไฟให้เต็มระบบ">
+                  <input type="time" id="poleFullRestore" aria-label="เวลาจ่ายไฟให้เต็มระบบ">
+                </div>
               </div>
             </div>
             <div class="field">
@@ -1139,7 +1141,7 @@
           <div class="stat-card-caption" id="poleStatTotalCaption">-</div>
         </div>
         <div class="stat-card accent-blue">
-          <div class="stat-card-head"><span>🪵</span><span>เสาไฟฟ้าล้มรวม</span></div>
+          <div class="stat-card-head"><span class="pole-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" xmlns="http://www.w3.org/2000/svg"><g transform="rotate(-18 12 12)"><line x1="12" y1="2.5" x2="12" y2="21.5" stroke="#a9a9b4" stroke-width="2.2" stroke-linecap="round"/><line x1="6" y1="7" x2="18" y2="7" stroke="#a9a9b4" stroke-width="1.7" stroke-linecap="round"/><circle cx="7.4" cy="7" r="1" fill="#c99a12"/><circle cx="12" cy="7" r="1" fill="#c99a12"/><circle cx="16.6" cy="7" r="1" fill="#c99a12"/></g></svg></span><span>เสาไฟฟ้าล้มรวม</span></div>
           <div class="stat-card-num"><span id="poleStatPoles">-</span> ต้น</div>
           <div class="stat-card-caption" id="poleStatPolesCaption">-</div>
         </div>
@@ -1493,7 +1495,7 @@
         badge.textContent = agg.total;
         badge.classList.remove("resolved","pending");
         if(status !== "none") badge.classList.add(status);
-        badge.onclick = function(e){ e.stopPropagation(); selectProvinceFocus(name); showMapPopup(name, badge); };
+        badge.onclick = function(e){ e.stopPropagation(); selectProvinceFocus(name); showMapPopup(name); };
       }
       // ทาสีแดงจางบนพื้นที่จังหวัดที่ยังมีผู้ใช้ไฟดับค้างอยู่ (pending) — ปกติ (resolved/none) คงสีเขียวเดิมของแผนที่
       var overlay = document.getElementById("overlay-" + name);
@@ -1502,20 +1504,18 @@
     // popup ที่เปิดค้างอยู่ (ถ้ามี) ต้องอัปเดตตัวเลขให้ตรงกับข้อมูลล่าสุดหลัง re-render (เช่น หลังเปลี่ยนช่วงวันที่)
     var popup = document.getElementById("mapPopup");
     if(popup.classList.contains("show") && popup.dataset.province){
-      var anchor = document.getElementById("badge-" + popup.dataset.province);
-      if(anchor) showMapPopup(popup.dataset.province, anchor);
+      showMapPopup(popup.dataset.province);
     }
   }
 
   // ================= MAP POPUP: ลูกเล่นคลิกดูสถิติรายจังหวัดบนแผนที่ =================
-  function showMapPopup(name, anchorEl){
+  // popup อยู่กึ่งกลางแผนที่เสมอ (ดูตำแหน่งคงที่ผ่าน CSS .map-popup) ไม่ว่าจะกดจังหวัดไหน เพื่อไม่ให้เนื้อหาโดนตัดที่ขอบ
+  function showMapPopup(name){
     var agg = state.byProvince[name] || { total: 0, stillOut: 0 };
     var popup = document.getElementById("mapPopup");
     document.getElementById("mapPopupTitle").textContent = "📍 " + name;
     document.getElementById("mapPopupEvents").textContent = fmtNum(agg.total) + " ครั้ง";
     document.getElementById("mapPopupAffected").textContent = agg.stillOut > 0 ? (fmtNum(agg.stillOut) + " ราย") : "ไม่มี";
-    popup.style.left = anchorEl.style.left;
-    popup.style.top = anchorEl.style.top;
     popup.dataset.province = name;
     popup.classList.add("show");
   }
@@ -1531,7 +1531,7 @@
       e.stopPropagation();
       var name = hit.dataset.province;
       selectProvinceFocus(name);
-      showMapPopup(name, document.getElementById("badge-" + name) || hit);
+      showMapPopup(name);
     });
   });
   document.getElementById("mapPopupClose").addEventListener("click", function(e){ e.stopPropagation(); hideMapPopup(); });
@@ -2205,7 +2205,9 @@
       customersAffected: document.getElementById("poleCustAffected").value,
       customersRemaining: document.getElementById("poleCustRemaining").value,
       firstRestoreTime: document.getElementById("poleFirstRestore").value,
+      firstRestoreDate: document.getElementById("poleFirstRestoreDate").value,
       fullRestoreTime: document.getElementById("poleFullRestore").value,
+      fullRestoreDate: document.getElementById("poleFullRestoreDate").value,
       announcement: document.getElementById("poleAnnouncement").value.trim(),
       reporterName: document.getElementById("poleReporterName").value.trim(),
       phone: document.getElementById("polePhone").value.trim()
