@@ -2400,13 +2400,20 @@
     fontPx = fontPx || 17;
     var atoms = [];
     spans.forEach(function(sp){
-      var parts = String(sp.text == null ? "" : sp.text).match(/\S+|\s+/g) || [];
-      parts.forEach(function(p){ atoms.push({ text: p, color: sp.color, bold: !!sp.bold, isSpace: /^\s+$/.test(p) }); });
+      // แยก "\n" ที่ผู้ใช้พิมพ์เอง (เช่น กด Enter ในช่องบันทึกการดำเนินการ) ออกมาเป็น atom พิเศษ (isBreak)
+      // เพื่อบังคับขึ้นบรรทัดใหม่จริงๆ ในภาพ ไม่ใช่แค่ถูกกลืนเป็นช่องว่างธรรมดาเวลาตัดคำ
+      var segs = String(sp.text == null ? "" : sp.text).split(/(\n)/);
+      segs.forEach(function(seg){
+        if(seg === "\n"){ atoms.push({ text: "", color: sp.color, bold: !!sp.bold, isBreak: true }); return; }
+        var parts = seg.match(/\S+|\s+/g) || [];
+        parts.forEach(function(p){ atoms.push({ text: p, color: sp.color, bold: !!sp.bold, isSpace: /^\s+$/.test(p) }); });
+      });
     });
     function fontFor(a){ return (a.bold ? "700 " : "") + fontPx + "px " + RC_FONT_; }
     var lines = [], current = [], curWidth = 0;
-    function pushLine(){ if(current.length){ lines.push(current); } current = []; curWidth = 0; }
+    function pushLine(){ lines.push(current); current = []; curWidth = 0; }
     atoms.forEach(function(atom){
+      if(atom.isBreak){ pushLine(); return; }
       ctx.font = fontFor(atom);
       var w = ctx.measureText(atom.text).width;
       if(atom.isSpace){
@@ -2440,7 +2447,7 @@
       current.push({ text: atom.text, color: atom.color, bold: atom.bold, width: w });
       curWidth += w;
     });
-    pushLine();
+    if(current.length) lines.push(current); // ไม่ flush current ว่างซ้ำท้ายสุด (กันบรรทัดว่างเกินมาเวลาที่ atom สุดท้ายเป็นตัวขึ้นบรรทัดใหม่ไปแล้ว)
     if(lines.length === 0) lines.push([]);
     return lines;
   }
@@ -2494,36 +2501,26 @@
     var causeLines = layoutSpans_(ctx, causeSpans, innerW, bodyFont);
     var locationLines = layoutSpans_(ctx, locationSpans, innerW, bodyFont);
 
-    // ---- จัดกลุ่มบันทึกการดำเนินการตามวันที่ (พ.ศ.) — วันแรกที่ตรงกับวันเกิดเหตุจะไม่มีหัวข้อวันที่ซ้ำ ----
+    // ---- บันทึกการดำเนินการ: เรียงตามเวลาเป็นรายการต่อเนื่อง ไม่มีหัวข้อ "วันที่ ..." คั่นระหว่างวันอีกต่อไป ----
+    // (ผู้ใช้ระบุว่าจะพิมพ์วันที่ลงในเนื้อบันทึกเองถ้าต้องการ ไม่ต้องให้ระบบขึ้นหัวข้อคั่นวันให้อัตโนมัติ)
     var evDate = parseDMY_(ev.date);
     var log = (ev.actionLog || []).slice().sort(function(a,b){ return (a.ts||0) - (b.ts||0); });
-    var logGroups = [];
-    log.forEach(function(item){
+    var logItemTexts = log.map(function(item){
       var d = new Date(item.ts||0);
-      var key = isNaN(d.getTime()) ? "-" : buddhistDateLabel_(d, false);
-      var grp = logGroups.length ? logGroups[logGroups.length-1] : null;
-      if(!grp || grp.key !== key){ grp = { key: key, items: [] }; logGroups.push(grp); }
       var hm = isNaN(d.getTime()) ? "" : (String(d.getHours()).padStart(2,"0") + "." + String(d.getMinutes()).padStart(2,"0") + " น. ");
-      grp.items.push(hm + item.text);
+      return hm + item.text;
     });
     var remainText = "คงเหลือผู้ใช้ไฟฟ้าได้รับผลกระทบไฟดับ " + fmtNum(ev.customersRemaining) + " ราย";
-    if(logGroups.length > 0){
-      var lastGrp = logGroups[logGroups.length-1];
-      lastGrp.items[lastGrp.items.length-1] += " " + remainText;
-    }
-
-    var incidentDateKey = evDate ? buddhistDateLabel_(evDate, false) : null;
-    var shownDate = incidentDateKey;
-    var logGroupsLayout = logGroups.map(function(grp){
-      var showHeading = grp.key !== shownDate;
-      shownDate = grp.key;
-      var itemLines = grp.items.map(function(t){ return layoutSpans_(ctx, [{ text: "- " + t, color: RC_.black }], CONTENT_W - 18*scale, bodyFont); });
-      return { key: grp.key, showHeading: showHeading, itemLines: itemLines };
-    });
-    if(logGroups.length === 0){
+    if(logItemTexts.length > 0){
+      logItemTexts[logItemTexts.length - 1] += " " + remainText;
+    } else {
       // ไม่มีบันทึกการดำเนินการเลย — แสดงยอดคงเหลือเป็นบรรทัดเดี่ยวแทน
-      logGroupsLayout.push({ key: null, showHeading: false, itemLines: [ layoutSpans_(ctx, [{ text: remainText, color: RC_.black }], CONTENT_W - 18*scale, bodyFont) ] });
+      logItemTexts.push(remainText);
     }
+    var actionItemLines = logItemTexts.map(function(t, i){
+      var prefix = (log.length > 0) ? "- " : ""; // ถ้าไม่มีบันทึกจริงเลย (เหลือแค่บรรทัดยอดคงเหลือ) ไม่ต้องมีขีดนำหน้า
+      return layoutSpans_(ctx, [{ text: prefix + t, color: RC_.black }], CONTENT_W - 18*scale, bodyFont);
+    });
 
     // ---- คำนวณความสูงรวมของภาพจากเนื้อหาทั้งหมด (ที่ scale นี้) ----
     var headerH = 96*scale;
@@ -2531,11 +2528,7 @@
     var actionHeaderH = 40*scale;
     var itemLH = 24*scale;
     var actionBodyH = 0;
-    logGroupsLayout.forEach(function(g){
-      if(g.showHeading) actionBodyH += 30*scale;
-      g.itemLines.forEach(function(lines){ actionBodyH += lines.length * itemLH; });
-      actionBodyH += 6*scale;
-    });
+    actionItemLines.forEach(function(lines){ actionBodyH += lines.length * itemLH + 6*scale; });
     var footerH = 50*scale;
     var H = headerH + descBlockH + actionHeaderH + actionBodyH + footerH + PAD;
 
@@ -2543,7 +2536,7 @@
       scale: scale, PAD: PAD, CONTENT_W: CONTENT_W, INDENT: INDENT, LH: LH, innerW: innerW,
       bodyFont: bodyFont, itemLH: itemLH, headerH: headerH, actionHeaderH: actionHeaderH,
       descLines: descLines, weatherLines: weatherLines, causeLines: causeLines, locationLines: locationLines,
-      logGroupsLayout: logGroupsLayout, H: H, evDate: evDate
+      actionItemLines: actionItemLines, H: H, evDate: evDate
     };
   }
 
@@ -2584,7 +2577,7 @@
     ctx.translate(offsetX, 0);
 
     var PAD = L.PAD, CONTENT_W = L.CONTENT_W, INDENT = L.INDENT, LH = L.LH, innerW = L.innerW;
-    var headerFontPx = 34*scale, dateHeadFontPx = 16*scale, creditFontPx = 16*scale;
+    var headerFontPx = 34*scale, creditFontPx = 16*scale;
 
     // ---- หัวเรื่อง: "วันที่ ..." สีน้ำเงินตัวใหญ่ + ขีดเส้นใต้สีส้ม + โลโก้ กฟภ. ----
     ctx.font = "700 " + headerFontPx + "px " + RC_FONT_;
@@ -2622,20 +2615,8 @@
     ctx.fillRect(PAD + INDENT, y + 6*scale, actionLabelW, 3*scale);
     y += L.actionHeaderH;
 
-    L.logGroupsLayout.forEach(function(g){
-      if(g.showHeading){
-        ctx.font = dateHeadFontPx + "px " + RC_FONT_;
-        ctx.fillStyle = RC_.black;
-        var label = "วันที่ " + g.key;
-        var lw = ctx.measureText(label).width;
-        var lx = PAD + (CONTENT_W - lw) / 2;
-        ctx.fillText(label, lx, y);
-        ctx.fillRect(lx, y + 4*scale, lw, 1.4*scale);
-        y += 30*scale;
-      }
-      g.itemLines.forEach(function(lines){
-        y = drawSpanLines_(ctx, lines, PAD, y, L.itemLH, "left", CONTENT_W - 18*scale, L.bodyFont);
-      });
+    L.actionItemLines.forEach(function(lines){
+      y = drawSpanLines_(ctx, lines, PAD, y, L.itemLH, "left", CONTENT_W - 18*scale, L.bodyFont);
       y += 6*scale;
     });
 
