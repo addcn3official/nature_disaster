@@ -243,6 +243,8 @@
     .status-pills{display:flex;gap:6px;flex-wrap:wrap;}
     .status-chip{border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink-muted);border-radius:999px;padding:6px 12px;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;}
     .status-chip.active{background:var(--water-strong);border-color:var(--water-strong);color:#fff;}
+    .status-filter-group{display:flex;flex-direction:column;gap:5px;}
+    .status-filter-label{font-size:.74rem;font-weight:600;color:var(--ink-faint);}
     .table-wrap{overflow-x:auto;padding:14px 20px 20px;}
     .events-table{width:100%;border-collapse:collapse;font-size:.83rem;min-width:840px;}
     .events-table th{text-align:left;font-weight:600;color:var(--ink-muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.03em;padding:0 10px 8px;border-bottom:1px solid var(--border);white-space:nowrap;}
@@ -1036,11 +1038,21 @@
         </div>
         <div class="table-controls">
           <input type="search" id="poleSearchInput" class="search-input" placeholder="ค้นหา จังหวัด / พื้นที่ กฟฟ. / อุปกรณ์ / สาเหตุ...">
-          <div class="status-pills">
-            <button type="button" class="status-chip active" data-polestatus="all">ทั้งหมด</button>
-            <button type="button" class="status-chip" data-polestatus="pending">⚠ กำลังดำเนินการ</button>
-            <button type="button" class="status-chip" data-polestatus="resolved">✓ จ่ายไฟครบแล้ว</button>
-            <button type="button" class="status-chip" data-polestatus="none">ไม่มีผลกระทบ</button>
+          <div class="status-filter-group">
+            <div class="status-filter-label">สถานะผู้ใช้ไฟ</div>
+            <div class="status-pills">
+              <button type="button" class="status-chip active" data-polestatus="all">ทั้งหมด</button>
+              <button type="button" class="status-chip" data-polestatus="pending">⚠ อยู่ระหว่างดำเนินการจ่ายไฟ</button>
+              <button type="button" class="status-chip" data-polestatus="resolved">✓ จ่ายไฟครบแล้ว</button>
+            </div>
+          </div>
+          <div class="status-filter-group">
+            <div class="status-filter-label">สถานะระบบไฟฟ้า</div>
+            <div class="status-pills">
+              <button type="button" class="status-chip active" data-polerecovery="all">ทั้งหมด</button>
+              <button type="button" class="status-chip" data-polerecovery="pending">🛠 อยู่ระหว่างกู้คืนระบบ</button>
+              <button type="button" class="status-chip" data-polerecovery="done">✓ กู้คืนระบบครบแล้ว</button>
+            </div>
           </div>
         </div>
         <div class="table-wrap">
@@ -1053,12 +1065,13 @@
                 <th>สาเหตุ</th>
                 <th>เสาสูง/ต่ำล้ม</th>
                 <th data-polesort="customersRemaining">ผู้ใช้ไฟกระทบ/คงเหลือ</th>
-                <th data-polesort="status">สถานะ</th>
+                <th data-polesort="status">สถานะผู้ใช้ไฟ</th>
+                <th data-polesort="recovery">สถานะระบบไฟฟ้า</th>
                 <th>การจัดการ</th>
               </tr>
             </thead>
             <tbody id="poleEventsTableBody">
-              <tr><td colspan="8" class="empty-state">กำลังโหลดข้อมูล...</td></tr>
+              <tr><td colspan="9" class="empty-state">กำลังโหลดข้อมูล...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1079,6 +1092,7 @@
         <label class="modal-field-label" id="statusModalFieldLabel">จำนวนผู้ใช้ไฟที่ยังไม่ได้รับไฟคืน (ราย)</label>
         <input type="number" min="0" id="statusModalRemaining" class="modal-input">
         <label class="modal-checkbox"><input type="checkbox" id="statusModalResolved"> ทำเครื่องหมายว่าดำเนินการแล้วเสร็จ (จ่ายไฟคืนครบแล้ว)</label>
+        <label class="modal-checkbox" id="statusModalRecoveryRow" style="display:none;"><input type="checkbox" id="statusModalSystemRestored"> ทำเครื่องหมายว่าก่อสร้างระบบทดแทนของเดิมเสร็จแล้ว (นำเข้าระบบไฟฟ้าปกติแล้ว)</label>
         <div class="form-msg" id="statusModalMsg"></div>
 
         <div id="statusModalActionLogSection" style="display:none;">
@@ -1172,6 +1186,33 @@
   // วาง URL ของ Google Apps Script Web app ที่ deploy ไว้ตรงนี้ (ต้องลงท้ายด้วย /exec)
   // ดูวิธี deploy ได้จากคอมเมนต์ด้านบนของไฟล์ Code.gs ที่ให้มาคู่กัน
   var WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyWL3Epa4AJEw3nJNfq-Tp7i4YhYfVsIHIJgAdHV3r3w16kM5pK1Omm70k9eRzEIiQpeA/exec";
+
+  // เรียก Apps Script ผ่าน fetch() พร้อมกำหนด timeout เอง (ของเดิม fetch() เปล่าไม่มี timeout เลย
+  // ถ้า Apps Script ตอบช้าผิดปกติ/เน็ตหลุดกลางทาง ปุ่มจะค้างที่ "กำลังบันทึก..." ไปเรื่อยๆ ไม่มีที่สิ้นสุด)
+  // ครบเวลาที่กำหนด (ค่าเริ่มต้น 25 วินาที) จะยกเลิกคำขอเองแล้วโยน error ที่มี .isTimeout = true
+  // ให้โค้ดผู้เรียกใช้ตัดสินใจได้ว่าจะแสดงข้อความเตือนเพิ่มเติมแบบไหน (เช่น เตือนเรื่องข้อมูลอาจซ้ำถ้าเป็นการบันทึกใหม่)
+  function fetchJson_(url, opts, timeoutMs){
+    timeoutMs = timeoutMs || 25000;
+    opts = opts || {};
+    var controller = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    if(controller) opts.signal = controller.signal;
+    var timedOut = false;
+    var timer = setTimeout(function(){ timedOut = true; if(controller) controller.abort(); }, timeoutMs);
+    return fetch(url, opts)
+      .then(function(res){
+        clearTimeout(timer);
+        return res.json();
+      })
+      .catch(function(err){
+        clearTimeout(timer);
+        if(timedOut){
+          var e = new Error("เซิร์ฟเวอร์ไม่ตอบกลับภายในเวลาที่กำหนด (เครือข่ายอาจช้าหรือไม่เสถียร) กรุณาลองใหม่อีกครั้ง");
+          e.isTimeout = true;
+          throw e;
+        }
+        throw err;
+      });
+  }
 
   var state = {
     allEvents: [],
@@ -1623,8 +1664,7 @@
     }
     warning.style.display = "none";
     document.getElementById("statusPill").textContent = "กำลังโหลดข้อมูล...";
-    fetch(WEBAPP_URL)
-      .then(function(res){ return res.json(); })
+    fetchJson_(WEBAPP_URL)
       .then(function(summary){
         if(summary && summary.error){ throw new Error(summary.error); }
         state.allEvents = (summary && summary.events) || [];
@@ -1705,12 +1745,11 @@
     btnSubmit.disabled = true;
     btnSubmit.textContent = "กำลังบันทึก...";
 
-    fetch(WEBAPP_URL, {
+    fetchJson_(WEBAPP_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload)
     })
-      .then(function(res){ return res.json(); })
       .then(function(result){
         if(!result || result.ok !== true){
           throw new Error((result && result.error) || "เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง");
@@ -1725,7 +1764,9 @@
         loadSummary();
       })
       .catch(function(err){
-        setMsg("err", (err && err.message) ? err.message : "เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง");
+        var msg = (err && err.message) ? err.message : "เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง";
+        if(err && err.isTimeout){ msg += " (หากกดบันทึกซ้ำ ควรกดรีเฟรชตรวจสอบในตารางรายการก่อน เผื่อข้อมูลรอบแรกถูกบันทึกไปแล้วจริง เพื่อกันข้อมูลซ้ำ)"; }
+        setMsg("err", msg);
         btnSubmit.disabled = false;
         btnSubmit.textContent = "บันทึกรายงาน";
       });
@@ -1742,6 +1783,7 @@
     province: "",
     search: "",
     status: "all",
+    recovery: "all",
     sortKey: "timestamp",
     sortDir: "desc"
   };
@@ -1817,13 +1859,32 @@
     }).join("");
   }
 
+  // สถานะผู้ใช้ไฟ (แกนที่ 1) — เหลือ 2 สถานะเท่านั้น (ตัด "ไม่มีผลกระทบ" ออกตามที่ผู้ใช้ขอ):
+  // อยู่ระหว่างดำเนินการจ่ายไฟ (ยังมีผู้ใช้ไฟค้างไม่ได้รับไฟคืน) / จ่ายไฟครบแล้ว (คงเหลือ = 0 ไม่ว่าจะเคยมีผู้ใช้ไฟกระทบหรือไม่ก็ตาม)
+  // ใช้ label เฉพาะของพาร์ทเสาล้มเอง ไม่ใช้ statusTagHtml ร่วมกับพาร์ทน้ำท่วม (คำที่ใช้ต่างกัน และพาร์ทน้ำท่วมยังคง 3 สถานะเดิม)
   function poleEventStatus(ev){
-    if((Number(ev.customersAffected)||0) <= 0) return "none";
     return (Number(ev.customersRemaining)||0) > 0 ? "pending" : "resolved";
+  }
+
+  function poleStatusTagHtml(status){
+    if(status === "pending") return '<span class="status-tag pending">⚠ อยู่ระหว่างดำเนินการจ่ายไฟ</span>';
+    return '<span class="status-tag resolved">✓ จ่ายไฟครบแล้ว</span>';
+  }
+
+  // สถานะระบบไฟฟ้า (แกนที่ 2, ใหม่) — อิสระจากสถานะผู้ใช้ไฟข้างบน: จ่ายไฟครบแล้วได้จากไลน์ชั่วคราว
+  // แต่การกู้คืนระบบไฟฟ้า (ก่อสร้าง/ซ่อมระบบทดแทนของเดิมที่ล้มไป) อาจยังไม่เสร็จ จนกว่าจะติ๊ก "systemRestored" ในหน้าอัปเดตสถานะ
+  function poleRecoveryStatus(ev){
+    return ev.systemRestored ? "done" : "pending";
+  }
+
+  function poleRecoveryTagHtml(status){
+    if(status === "done") return '<span class="status-tag resolved">✓ กู้คืนระบบครบแล้ว</span>';
+    return '<span class="status-tag pending">🛠 อยู่ระหว่างกู้คืนระบบ</span>';
   }
 
   function renderPoleTable(){
     var events = poleGetFiltered().filter(function(ev){ return poleEventStatus(ev) === poleState.status || poleState.status === "all"; });
+    events = events.filter(function(ev){ return poleRecoveryStatus(ev) === poleState.recovery || poleState.recovery === "all"; });
     if(poleState.search){
       var q = poleState.search.toLowerCase();
       events = events.filter(function(ev){
@@ -1833,8 +1894,8 @@
       });
     }
     events = events.slice().sort(function(a,b){
-      var ka = poleState.sortKey === "status" ? poleEventStatus(a) : a[poleState.sortKey];
-      var kb = poleState.sortKey === "status" ? poleEventStatus(b) : b[poleState.sortKey];
+      var ka = poleState.sortKey === "status" ? poleEventStatus(a) : (poleState.sortKey === "recovery" ? poleRecoveryStatus(a) : a[poleState.sortKey]);
+      var kb = poleState.sortKey === "status" ? poleEventStatus(b) : (poleState.sortKey === "recovery" ? poleRecoveryStatus(b) : b[poleState.sortKey]);
       if(ka == null) ka = "";
       if(kb == null) kb = "";
       var cmp = ka > kb ? 1 : (ka < kb ? -1 : 0);
@@ -1845,11 +1906,12 @@
 
     var tbody = document.getElementById("poleEventsTableBody");
     if(events.length === 0){
-      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">ไม่พบเหตุการณ์ที่ตรงกับเงื่อนไข</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" class="empty-state">ไม่พบเหตุการณ์ที่ตรงกับเงื่อนไข</td></tr>';
       return;
     }
     tbody.innerHTML = events.map(function(ev){
       var status = poleEventStatus(ev);
+      var recovery = poleRecoveryStatus(ev);
       return '<tr class="status-'+status+'">' +
         '<td class="cell-muted">'+escapeHtml(ev.date)+'<br>'+escapeHtml(ev.time)+' น.</td>' +
         '<td><div class="cell-place">'+escapeHtml(ev.province)+'</div><div class="cell-muted">'+escapeHtml(ev.peaArea || "-")+'</div></td>' +
@@ -1857,7 +1919,8 @@
         '<td>'+escapeHtml(ev.cause || "-")+'</td>' +
         '<td class="cell-muted">'+fmtNum(ev.hvPoles)+' / '+fmtNum(ev.lvPoles)+' ต้น</td>' +
         '<td class="cell-muted">'+fmtNum(ev.customersAffected)+' / '+fmtNum(ev.customersRemaining)+' ราย</td>' +
-        '<td>'+statusTagHtml(status)+'</td>' +
+        '<td>'+poleStatusTagHtml(status)+'</td>' +
+        '<td>'+poleRecoveryTagHtml(recovery)+'</td>' +
         '<td><button type="button" class="row-action-btn" data-rowindex="'+ev.rowIndex+'">อัปเดตสถานะ</button>' +
         '<button type="button" class="row-action-btn report" data-rowindex="'+ev.rowIndex+'">สร้างภาพรายงาน</button></td>' +
       '</tr>';
@@ -1896,8 +1959,7 @@
     }
     warning.style.display = "none";
     document.getElementById("polePill").textContent = "กำลังโหลดข้อมูล...";
-    fetch(WEBAPP_URL + "?type=pole")
-      .then(function(res){ return res.json(); })
+    fetchJson_(WEBAPP_URL + "?type=pole")
       .then(function(summary){
         if(summary && summary.error){ throw new Error(summary.error); }
         poleState.allEvents = (summary && summary.events) || [];
@@ -1956,6 +2018,14 @@
       renderPoleTable();
     });
   });
+  document.querySelectorAll("#modulePole .status-chip[data-polerecovery]").forEach(function(chip){
+    chip.addEventListener("click", function(){
+      document.querySelectorAll("#modulePole .status-chip[data-polerecovery]").forEach(function(c){ c.classList.remove("active"); });
+      chip.classList.add("active");
+      poleState.recovery = chip.dataset.polerecovery;
+      renderPoleTable();
+    });
+  });
   document.querySelectorAll("#poleEventsTable th[data-polesort]").forEach(function(th){
     th.addEventListener("click", function(){
       var key = th.dataset.polesort;
@@ -1983,8 +2053,7 @@
 
   function loadPoleEquipmentOptions(){
     if(poleEquipmentLoaded || !isConfigured()) return;
-    fetch(WEBAPP_URL + "?type=equipment")
-      .then(function(res){ return res.json(); })
+    fetchJson_(WEBAPP_URL + "?type=equipment")
       .then(function(data){
         if(data && data.error) throw new Error(data.error);
         poleEquipmentRows = (data && data.rows) || [];
@@ -2132,12 +2201,11 @@
     btnPoleSubmit.disabled = true;
     btnPoleSubmit.textContent = "กำลังบันทึก...";
 
-    fetch(WEBAPP_URL, {
+    fetchJson_(WEBAPP_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload)
     })
-      .then(function(res){ return res.json(); })
       .then(function(result){
         if(!result || result.ok !== true){
           throw new Error((result && result.error) || "เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง");
@@ -2155,7 +2223,9 @@
         loadPoleSummary();
       })
       .catch(function(err){
-        polePillMsg("err", (err && err.message) ? err.message : "เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง");
+        var msg = (err && err.message) ? err.message : "เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง";
+        if(err && err.isTimeout){ msg += " (หากกดบันทึกซ้ำ ควรกดรีเฟรชตรวจสอบในตารางรายการก่อน เผื่อข้อมูลรอบแรกถูกบันทึกไปแล้วจริง เพื่อกันข้อมูลซ้ำ)"; }
+        polePillMsg("err", msg);
         btnPoleSubmit.disabled = false;
         btnPoleSubmit.textContent = "บันทึกรายงาน";
       });
@@ -2188,7 +2258,9 @@
     input.disabled = false;
 
     var resolvedBox = document.getElementById("statusModalResolved");
-    resolvedBox.checked = affectedVal > 0 && remainingVal === 0;
+    // พาร์ทเสาล้มเหลือ 2 สถานะ (ตัด "ไม่มีผลกระทบ" ออกแล้ว) — "จ่ายไฟครบแล้ว" อิงจากคงเหลือ=0 ล้วนๆ ไม่ต้องเช็คว่าเคยมีผู้ใช้ไฟกระทบหรือไม่
+    // พาร์ทน้ำท่วมยังคงตรรกะเดิม (3 สถานะ) ไม่เปลี่ยนแปลง
+    resolvedBox.checked = moduleType === "pole" ? (remainingVal === 0) : (affectedVal > 0 && remainingVal === 0);
 
     var msgEl = document.getElementById("statusModalMsg");
     msgEl.className = "form-msg";
@@ -2197,6 +2269,13 @@
     var saveBtn = document.getElementById("statusModalSave");
     saveBtn.disabled = false;
     saveBtn.textContent = "บันทึกการอัปเดต";
+
+    // สถานะการกู้ระบบ (แกนที่ 2, อิสระจากสถานะการจ่ายไฟข้างบน) — มีเฉพาะพาร์ทเสาล้มเท่านั้น
+    var recoveryRow = document.getElementById("statusModalRecoveryRow");
+    recoveryRow.style.display = moduleType === "pole" ? "block" : "none";
+    if(moduleType === "pole"){
+      document.getElementById("statusModalSystemRestored").checked = !!ev.systemRestored;
+    }
 
     var logSection = document.getElementById("statusModalActionLogSection");
     logSection.style.display = moduleType === "pole" ? "block" : "none";
@@ -2262,12 +2341,11 @@
     msgEl.className = "form-msg";
     msgEl.textContent = "";
 
-    fetch(WEBAPP_URL, {
+    fetchJson_(WEBAPP_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ action: "appendActionLog", formType: "pole", rowIndex: ev.rowIndex, text: text })
     })
-      .then(function(res){ return res.json(); })
       .then(function(result){
         if(!result || result.ok !== true){
           throw new Error((result && result.error) || "เกิดข้อผิดพลาดในการบันทึก กรุณาลองใหม่อีกครั้ง");
@@ -2319,7 +2397,10 @@
       rowIndex: ev.rowIndex,
       markResolved: resolved
     };
-    if(moduleType === "pole"){ payload.customersRemaining = remaining; }
+    if(moduleType === "pole"){
+      payload.customersRemaining = remaining;
+      payload.systemRestored = document.getElementById("statusModalSystemRestored").checked;
+    }
     else { payload.customersStillOut = remaining; }
 
     var saveBtn = document.getElementById("statusModalSave");
@@ -2328,12 +2409,11 @@
     msgEl.className = "form-msg";
     msgEl.textContent = "";
 
-    fetch(WEBAPP_URL, {
+    fetchJson_(WEBAPP_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload)
     })
-      .then(function(res){ return res.json(); })
       .then(function(result){
         if(!result || result.ok !== true){
           throw new Error((result && result.error) || "เกิดข้อผิดพลาดในการอัปเดต กรุณาลองใหม่อีกครั้ง");
