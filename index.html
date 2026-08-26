@@ -924,6 +924,10 @@
               </div>
             </div>
             <div class="field">
+              <label for="poleActionText">บันทึกการดำเนินการ <span class="opt">(ถ้ามี — เพิ่มบันทึกเพิ่มเติมภายหลังได้ที่ปุ่ม "อัปเดตสถานะ" ในตารางรายการ)</span></label>
+              <textarea id="poleActionText" placeholder="เช่น หน่วยซ่อมเข้าพื้นที่แล้ว, อยู่ระหว่างดำเนินการแก้ไข..."></textarea>
+            </div>
+            <div class="field">
               <label for="poleAnnouncement">ประกาศแจ้ง <span class="opt">(ไม่บังคับ)</span></label>
               <textarea id="poleAnnouncement" placeholder="เช่น ได้รับการติดตั้งแล้ว พร้อมจ่ายไฟเพิ่มระบบเมื่อวันที่ ..."></textarea>
             </div>
@@ -2114,6 +2118,7 @@
       firstRestoreDate: document.getElementById("poleFirstRestoreDate").value,
       fullRestoreTime: document.getElementById("poleFullRestore").value,
       fullRestoreDate: document.getElementById("poleFullRestoreDate").value,
+      actionText: document.getElementById("poleActionText").value.trim(),
       announcement: document.getElementById("poleAnnouncement").value.trim(),
       reporterName: document.getElementById("poleReporterName").value.trim(),
       phone: document.getElementById("polePhone").value.trim()
@@ -2391,13 +2396,14 @@
 
   // ตัดคำ/ตัดบรรทัดข้อความหลายสี (rich text) ให้พอดีความกว้างที่กำหนด — คืนเป็น lines: [[{text,color,bold,width}]]
   // รองรับข้อความไทยที่ไม่มีช่องวรรค (ตัดทีละอักขระเมื่อคำเดียวยาวเกิน maxWidth)
-  function layoutSpans_(ctx, spans, maxWidth){
+  function layoutSpans_(ctx, spans, maxWidth, fontPx){
+    fontPx = fontPx || 17;
     var atoms = [];
     spans.forEach(function(sp){
       var parts = String(sp.text == null ? "" : sp.text).match(/\S+|\s+/g) || [];
       parts.forEach(function(p){ atoms.push({ text: p, color: sp.color, bold: !!sp.bold, isSpace: /^\s+$/.test(p) }); });
     });
-    function fontFor(a){ return (a.bold ? "700 " : "") + "17px " + RC_FONT_; }
+    function fontFor(a){ return (a.bold ? "700 " : "") + fontPx + "px " + RC_FONT_; }
     var lines = [], current = [], curWidth = 0;
     function pushLine(){ if(current.length){ lines.push(current); } current = []; curWidth = 0; }
     atoms.forEach(function(atom){
@@ -2440,13 +2446,14 @@
   }
 
   // วาด lines ที่ได้จาก layoutSpans_ ลง canvas เริ่มที่ (x, yStart) คืนค่า y ถัดไปหลังวาดจบ
-  function drawSpanLines_(ctx, lines, x, yStart, lineHeight, align, containerWidth){
+  function drawSpanLines_(ctx, lines, x, yStart, lineHeight, align, containerWidth, fontPx){
+    fontPx = fontPx || 17;
     var y = yStart;
     lines.forEach(function(line){
       var totalW = line.reduce(function(s,a){ return s + a.width; }, 0);
       var cx = (align === "center") ? (x + (containerWidth - totalW) / 2) : x;
       line.forEach(function(atom){
-        ctx.font = (atom.bold ? "700 " : "") + "17px " + RC_FONT_;
+        ctx.font = (atom.bold ? "700 " : "") + fontPx + "px " + RC_FONT_;
         ctx.fillStyle = atom.color;
         ctx.fillText(atom.text, cx, y);
         cx += atom.width;
@@ -2456,18 +2463,14 @@
     return y;
   }
 
-  function drawReportCard_(canvas, ev, logoImg){
-    var W = 1200, PAD = 46, CONTENT_W = 640, INDENT = 24, LH = 26;
-    var ctx = canvas.getContext("2d");
-    ctx.textBaseline = "alphabetic";
+  // เลย์เอาต์เนื้อหาภาพรายงานทั้งหมดที่ "scale" ที่กำหนด (scale=1 คือขนาดต้นแบบเดิม 1200px กว้าง)
+  // แยกออกมาจาก drawReportCard_ เพื่อให้เรียกซ้ำได้ 2 รอบ: รอบแรกวัดความสูงจริงที่ scale หน่วย,
+  // รอบสองเลย์เอาต์จริงที่ scale สุดท้ายที่คำนวณได้ (ดูเหตุผลใน drawReportCard_)
+  function computeReportLayout_(ctx, ev, scale, equipJoined){
+    var PAD = 46*scale, CONTENT_W = 640*scale, INDENT = 24*scale, LH = 26*scale;
+    var bodyFont = 17*scale;
+    var innerW = CONTENT_W - INDENT;
 
-    var evDate = parseDMY_(ev.date);
-    var equipList = String(ev.equipment||"").split(",").map(function(s){ return s.trim(); }).filter(Boolean);
-    var equipJoined = equipList.length > 1
-      ? (equipList.slice(0, -1).join(", ") + " และ " + equipList[equipList.length - 1])
-      : (equipList[0] || "");
-
-    // ---- ย่อหน้าสรุปเหตุการณ์เริ่มต้น (bullet ›) ----
     var descSpans = [
       { text: "เวลา " + (ev.time||"-") + " น. Breaker รหัส ", color: RC_.black },
       { text: equipJoined + " ", color: RC_.code },
@@ -2486,14 +2489,13 @@
     var locationText = "บริเวณ " + ([ev.peaArea, ev.province].filter(Boolean).join(" จ.") || "-");
     var locationSpans = [ { text: locationText, color: RC_.black } ];
 
-    ctx.font = "17px " + RC_FONT_;
-    var innerW = CONTENT_W - INDENT;
-    var descLines = layoutSpans_(ctx, descSpans, innerW);
-    var weatherLines = layoutSpans_(ctx, weatherSpans, innerW);
-    var causeLines = layoutSpans_(ctx, causeSpans, innerW);
-    var locationLines = layoutSpans_(ctx, locationSpans, innerW);
+    var descLines = layoutSpans_(ctx, descSpans, innerW, bodyFont);
+    var weatherLines = layoutSpans_(ctx, weatherSpans, innerW, bodyFont);
+    var causeLines = layoutSpans_(ctx, causeSpans, innerW, bodyFont);
+    var locationLines = layoutSpans_(ctx, locationSpans, innerW, bodyFont);
 
     // ---- จัดกลุ่มบันทึกการดำเนินการตามวันที่ (พ.ศ.) — วันแรกที่ตรงกับวันเกิดเหตุจะไม่มีหัวข้อวันที่ซ้ำ ----
+    var evDate = parseDMY_(ev.date);
     var log = (ev.actionLog || []).slice().sort(function(a,b){ return (a.ts||0) - (b.ts||0); });
     var logGroups = [];
     log.forEach(function(item){
@@ -2512,98 +2514,139 @@
 
     var incidentDateKey = evDate ? buddhistDateLabel_(evDate, false) : null;
     var shownDate = incidentDateKey;
-    ctx.font = "16px " + RC_FONT_;
     var logGroupsLayout = logGroups.map(function(grp){
       var showHeading = grp.key !== shownDate;
       shownDate = grp.key;
-      var itemLines = grp.items.map(function(t){ return layoutSpans_(ctx, [{ text: "- " + t, color: RC_.black }], CONTENT_W - 18); });
+      var itemLines = grp.items.map(function(t){ return layoutSpans_(ctx, [{ text: "- " + t, color: RC_.black }], CONTENT_W - 18*scale, bodyFont); });
       return { key: grp.key, showHeading: showHeading, itemLines: itemLines };
     });
     if(logGroups.length === 0){
       // ไม่มีบันทึกการดำเนินการเลย — แสดงยอดคงเหลือเป็นบรรทัดเดี่ยวแทน
-      logGroupsLayout.push({ key: null, showHeading: false, itemLines: [ layoutSpans_(ctx, [{ text: remainText, color: RC_.black }], CONTENT_W - 18) ] });
+      logGroupsLayout.push({ key: null, showHeading: false, itemLines: [ layoutSpans_(ctx, [{ text: remainText, color: RC_.black }], CONTENT_W - 18*scale, bodyFont) ] });
     }
 
-    // ---- คำนวณความสูงรวมของภาพจากเนื้อหาทั้งหมด ----
-    var headerH = 96;
-    var descBlockH = descLines.length*LH + weatherLines.length*LH + causeLines.length*LH + locationLines.length*LH + 22;
-    var actionHeaderH = 40;
+    // ---- คำนวณความสูงรวมของภาพจากเนื้อหาทั้งหมด (ที่ scale นี้) ----
+    var headerH = 96*scale;
+    var descBlockH = descLines.length*LH + weatherLines.length*LH + causeLines.length*LH + locationLines.length*LH + 22*scale;
+    var actionHeaderH = 40*scale;
+    var itemLH = 24*scale;
     var actionBodyH = 0;
     logGroupsLayout.forEach(function(g){
-      if(g.showHeading) actionBodyH += 30;
-      g.itemLines.forEach(function(lines){ actionBodyH += lines.length * 24; });
-      actionBodyH += 6;
+      if(g.showHeading) actionBodyH += 30*scale;
+      g.itemLines.forEach(function(lines){ actionBodyH += lines.length * itemLH; });
+      actionBodyH += 6*scale;
     });
-    var footerH = 50;
+    var footerH = 50*scale;
     var H = headerH + descBlockH + actionHeaderH + actionBodyH + footerH + PAD;
 
-    canvas.width = W;
-    canvas.height = H;
+    return {
+      scale: scale, PAD: PAD, CONTENT_W: CONTENT_W, INDENT: INDENT, LH: LH, innerW: innerW,
+      bodyFont: bodyFont, itemLH: itemLH, headerH: headerH, actionHeaderH: actionHeaderH,
+      descLines: descLines, weatherLines: weatherLines, causeLines: causeLines, locationLines: locationLines,
+      logGroupsLayout: logGroupsLayout, H: H, evDate: evDate
+    };
+  }
 
-    // ---- พื้นหลังสีขาว (ไม่มีแถบสีคลุมหัวเรื่อง ตามภาพอ้างอิงจริง) ----
+  // ภาพรายงานผู้บริหาร: ขนาดผลลัพธ์ "คงที่เสมอ" ที่ 1672×941px ไม่ว่าเหตุการณ์นั้นจะมีเนื้อหา/บันทึกการดำเนินการยาวแค่ไหน
+  // วิธีคิด: เลย์เอาต์เดิมออกแบบไว้ที่ความกว้างต้นแบบ 1200px (BASE_W) แล้วขยายทุกอย่าง (ระยะขอบ/ขนาดตัวอักษร/ความสูงบรรทัด)
+  // ตามอัตราส่วนเดียวกัน (scale) จึงทำให้จำนวนบรรทัดที่ตัดคำได้เท่าเดิมเป๊ะ และความสูงเนื้อหาจริงแปรผันตรงกับ scale
+  //   1) วัดความสูงที่ scale หน่วย (=1) ก่อน เพื่อรู้ว่าเนื้อหาชุดนี้ "ยาวแค่ไหนจริงๆ"
+  //   2) ถ้าขยายเต็มความกว้าง TARGET_W แล้วสูงไม่เกิน TARGET_H — ใช้ scale นั้น (เนื้อหาน้อย จะเหลือที่ว่างด้านล่างก่อนเครดิตท้ายภาพ)
+  //   3) ถ้าขยายเต็มความกว้างแล้วสูงเกิน (เหตุการณ์ที่มีบันทึกการดำเนินการเยอะ) — ลด scale ลงให้สูงพอดี TARGET_H แทน
+  //      แล้ววาง "หน้ากระดาษ" นี้ไว้กึ่งกลางแนวนอนของเฟรม 1672px (เหลือขอบขาวซ้าย-ขวาแทน)
+  // ผลคือไฟล์ที่ export ออกมาทุกไฟล์มีขนาดพิกเซลเท่ากันเป๊ะ (1672×941) พร้อมนำไปวางในสไลด์/รายงานให้ขนาดเท่ากันได้ทันที
+  function drawReportCard_(canvas, ev, logoImg){
+    var TARGET_W = 1672, TARGET_H = 941, BASE_W = 1200;
+    var ctx = canvas.getContext("2d");
+    ctx.textBaseline = "alphabetic";
+
+    var equipList = String(ev.equipment||"").split(",").map(function(s){ return s.trim(); }).filter(Boolean);
+    var equipJoined = equipList.length > 1
+      ? (equipList.slice(0, -1).join(", ") + " และ " + equipList[equipList.length - 1])
+      : (equipList[0] || "");
+
+    var unit = computeReportLayout_(ctx, ev, 1, equipJoined);
+    var kWidth = TARGET_W / BASE_W;
+    var scale = (unit.H * kWidth <= TARGET_H) ? kWidth : (TARGET_H / unit.H);
+
+    var L = computeReportLayout_(ctx, ev, scale, equipJoined);
+    var pageW = BASE_W * scale; // "หน้ากระดาษ" เต็มความกว้างที่ scale นี้ (รวมพื้นที่ว่างฝั่งขวาสำหรับโลโก้)
+    var offsetX = Math.max(0, (TARGET_W - pageW) / 2);
+
+    canvas.width = TARGET_W;
+    canvas.height = TARGET_H;
+
+    // ---- พื้นหลังสีขาวเต็มเฟรมคงที่เสมอ ----
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillRect(0, 0, TARGET_W, TARGET_H);
+
+    ctx.save();
+    ctx.translate(offsetX, 0);
+
+    var PAD = L.PAD, CONTENT_W = L.CONTENT_W, INDENT = L.INDENT, LH = L.LH, innerW = L.innerW;
+    var headerFontPx = 34*scale, dateHeadFontPx = 16*scale, creditFontPx = 16*scale;
 
     // ---- หัวเรื่อง: "วันที่ ..." สีน้ำเงินตัวใหญ่ + ขีดเส้นใต้สีส้ม + โลโก้ กฟภ. ----
-    ctx.font = "700 34px " + RC_FONT_;
+    ctx.font = "700 " + headerFontPx + "px " + RC_FONT_;
     ctx.fillStyle = RC_.blue;
-    ctx.fillText(buddhistDateLabel_(evDate, true), PAD, 46);
+    ctx.fillText(buddhistDateLabel_(L.evDate, true), PAD, 46*scale);
     ctx.fillStyle = RC_.orange;
-    ctx.fillRect(PAD, 62, CONTENT_W, 6);
+    ctx.fillRect(PAD, 62*scale, CONTENT_W, 6*scale);
 
     if(logoImg){
-      // โลโก้ กฟภ. ไฟล์เดียวที่มีทั้งตราสัญลักษณ์ + ตัวอักษร "PEA" + แคปชันรวมอยู่แล้ว (ไฟล์จริงที่ผู้ใช้ส่งมา) — วางชิดขวาบน
-      var logoH = 66, logoW = logoImg.width * (logoH / logoImg.height);
-      var logoX = W - PAD - logoW;
-      try{ ctx.drawImage(logoImg, logoX, 10, logoW, logoH); }catch(e){}
+      // โลโก้ กฟภ. ไฟล์เดียวที่มีทั้งตราสัญลักษณ์ + ตัวอักษร "PEA" + แคปชันรวมอยู่แล้ว (ไฟล์จริงที่ผู้ใช้ส่งมา) — วางชิดขวาบนของหน้ากระดาษ
+      var logoH = 66*scale, logoW = logoImg.width * (logoH / logoImg.height);
+      var logoX = pageW - PAD - logoW;
+      try{ ctx.drawImage(logoImg, logoX, 10*scale, logoW, logoH); }catch(e){}
     }
 
-    var y = headerH;
+    var y = L.headerH;
 
     // ---- บรรทัดสรุปเหตุการณ์เริ่มต้น (bullet ›) ----
-    ctx.font = "700 17px " + RC_FONT_;
+    ctx.font = "700 " + L.bodyFont + "px " + RC_FONT_;
     ctx.fillStyle = RC_.black;
     ctx.fillText("›", PAD, y);
-    y = drawSpanLines_(ctx, descLines, PAD + INDENT, y, LH, "left", innerW);
-    y = drawSpanLines_(ctx, weatherLines, PAD + INDENT, y, LH, "left", innerW);
-    y = drawSpanLines_(ctx, causeLines, PAD + INDENT, y, LH, "left", innerW);
-    y = drawSpanLines_(ctx, locationLines, PAD + INDENT, y, LH, "left", innerW);
-    y += 18;
+    y = drawSpanLines_(ctx, L.descLines, PAD + INDENT, y, LH, "left", innerW, L.bodyFont);
+    y = drawSpanLines_(ctx, L.weatherLines, PAD + INDENT, y, LH, "left", innerW, L.bodyFont);
+    y = drawSpanLines_(ctx, L.causeLines, PAD + INDENT, y, LH, "left", innerW, L.bodyFont);
+    y = drawSpanLines_(ctx, L.locationLines, PAD + INDENT, y, LH, "left", innerW, L.bodyFont);
+    y += 18*scale;
 
     // ---- หัวข้อ "การดำเนินการ" (bullet › + ขีดเส้นใต้สีส้มพอดีความยาวข้อความ) ----
-    ctx.font = "700 17px " + RC_FONT_;
+    ctx.font = "700 " + L.bodyFont + "px " + RC_FONT_;
     ctx.fillStyle = RC_.black;
     ctx.fillText("›", PAD, y);
-    ctx.font = "700 17px " + RC_FONT_;
     ctx.fillText("การดำเนินการ", PAD + INDENT, y);
     var actionLabelW = ctx.measureText("การดำเนินการ").width;
     ctx.fillStyle = RC_.orange;
-    ctx.fillRect(PAD + INDENT, y + 6, actionLabelW, 3);
-    y += actionHeaderH;
+    ctx.fillRect(PAD + INDENT, y + 6*scale, actionLabelW, 3*scale);
+    y += L.actionHeaderH;
 
-    logGroupsLayout.forEach(function(g){
+    L.logGroupsLayout.forEach(function(g){
       if(g.showHeading){
-        ctx.font = "16px " + RC_FONT_;
+        ctx.font = dateHeadFontPx + "px " + RC_FONT_;
         ctx.fillStyle = RC_.black;
         var label = "วันที่ " + g.key;
         var lw = ctx.measureText(label).width;
         var lx = PAD + (CONTENT_W - lw) / 2;
         ctx.fillText(label, lx, y);
-        ctx.fillRect(lx, y + 4, lw, 1.4);
-        y += 30;
+        ctx.fillRect(lx, y + 4*scale, lw, 1.4*scale);
+        y += 30*scale;
       }
       g.itemLines.forEach(function(lines){
-        y = drawSpanLines_(ctx, lines, PAD, y, 24, "left", CONTENT_W - 18);
+        y = drawSpanLines_(ctx, lines, PAD, y, L.itemLH, "left", CONTENT_W - 18*scale, L.bodyFont);
       });
-      y += 6;
+      y += 6*scale;
     });
 
-    // ---- เครดิตหน่วยงานมุมขวาล่าง ----
-    ctx.font = "16px " + RC_FONT_;
+    // ---- เครดิตหน่วยงานมุมขวาล่าง — ตรึงไว้ที่ขอบล่างของเฟรมคงที่เสมอ (ไม่ใช่ต่อท้ายเนื้อหาที่ยาวไม่เท่ากัน) ----
+    ctx.font = creditFontPx + "px " + RC_FONT_;
     ctx.fillStyle = RC_.gray;
     ctx.textAlign = "right";
-    ctx.fillText("กองปฏิบัติการ ฝ่ายปฏิบัติการและบำรุงรักษา กฟน.3", W - PAD, H - 24);
+    ctx.fillText("กองปฏิบัติการ ฝ่ายปฏิบัติการและบำรุงรักษา กฟน.3", pageW - PAD, TARGET_H - 24*scale);
     ctx.textAlign = "left";
+
+    ctx.restore();
   }
 
   function openReportModal(ev){
