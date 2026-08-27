@@ -30,7 +30,7 @@
     .page{max-width:1220px;margin:0 auto;padding:20px 20px 64px;}
 
     header.top{display:flex;align-items:center;gap:14px;padding:6px 2px 18px;flex-wrap:wrap;}
-    .mark{width:46px;height:46px;flex:none;object-fit:contain;}
+    .mark{width:76px;height:76px;flex:none;object-fit:contain;}
     .titleblock h1{font-family:var(--font-display);font-size:1.3rem;font-weight:700;margin:0;}
     .titleblock p{margin:2px 0 0;color:var(--ink-muted);font-size:.86rem;}
 
@@ -421,21 +421,17 @@
         <fieldset>
           <legend>ข้อมูลเบื้องต้น</legend>
           <div class="field">
-            <label for="province">จังหวัดที่เกิดเหตุ *</label>
-            <select id="province" required>
-              <option value="" disabled selected>เลือกจังหวัด</option>
-              <option>อุทัยธานี</option>
-              <option>นครสวรรค์</option>
-              <option>ชัยนาท</option>
-              <option>ลพบุรี</option>
-              <option>สิงห์บุรี</option>
-              <option>เพชรบูรณ์</option>
+            <label for="peaHub">การไฟฟ้าจุดรวมงาน *</label>
+            <select id="peaHub" required>
+              <option value="" disabled selected>เลือกการไฟฟ้าจุดรวมงาน</option>
             </select>
+            <div class="hint" id="peaHubProvinceHint"></div>
+            <input type="hidden" id="province">
           </div>
           <div class="field">
-            <label for="pea">กฟส. (สาขาที่รับผิดชอบ) <span class="opt">(ถ้าทราบ)</span></label>
+            <label for="pea">การไฟฟ้าที่รับผิดชอบ <span class="opt">(ถ้าทราบ)</span></label>
             <select id="pea" disabled>
-              <option value="" selected>เลือกจังหวัดก่อน</option>
+              <option value="" selected>เลือกการไฟฟ้าจุดรวมงานก่อน</option>
             </select>
           </div>
           <div class="row2">
@@ -462,6 +458,18 @@
               <input type="text" id="feeder">
             </div>
           </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>รายละเอียดเหตุการณ์</legend>
+          <div class="field">
+            <label for="eventType">ประเภทเหตุการณ์ *</label>
+            <select id="eventType" required>
+              <option value="" disabled selected>เลือกประเภทเหตุการณ์</option>
+              <option>ปลดอุปกรณ์เพื่อดับไฟ</option>
+              <option>ไฟดับจากการ TL หรือ D/F ตก</option>
+            </select>
+          </div>
           <div class="field">
             <label for="system">ระบบไฟฟ้า</label>
             <select id="system">
@@ -475,33 +483,6 @@
             <input type="text" id="systemOther" style="margin-top:8px;display:none;" placeholder="ระบุระบบไฟฟ้า">
           </div>
           <div class="field">
-            <label for="affectedArea">พื้นที่เกิดไฟฟ้าดับ <span class="opt">(หมู่บ้าน/ถนน/ตำบล)</span></label>
-            <textarea id="affectedArea" placeholder="เช่น หมู่ 3-5 ต.ท่าทราย, ถนนสายหลักช่วง กม.12-15"></textarea>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>รายละเอียดเหตุการณ์</legend>
-          <div class="field">
-            <label for="eventType">ประเภทเหตุการณ์ *</label>
-            <select id="eventType" required>
-              <option value="" disabled selected>เลือกประเภทเหตุการณ์</option>
-              <option>น้ำท่วม</option>
-              <option>วาตภัย/ลมพายุ</option>
-              <option>ฟ้าผ่า</option>
-              <option>ต้นไม้/กิ่งไม้ล้มทับสายไฟ</option>
-              <option>อุปกรณ์ชำรุด/เสื่อมสภาพ</option>
-              <option>อุบัติเหตุ (ยานพาหนะชน)</option>
-              <option>ไฟฟ้าลัดวงจร</option>
-              <option value="อื่นๆ">อื่นๆ (ระบุ)</option>
-            </select>
-            <input type="text" id="eventTypeOther" style="margin-top:8px;display:none;" placeholder="ระบุประเภทเหตุการณ์">
-          </div>
-          <div class="field">
-            <label for="cause">สาเหตุ <span class="opt">(ไม่บังคับ)</span></label>
-            <input type="text" id="cause" placeholder="เช่น น้ำท่วมฐานเสา, ต้นไม้ล้มทับสาย">
-          </div>
-          <div class="field">
             <label>อุปกรณ์ที่ปลด/ทำงาน <span class="opt">(เลือกได้มากกว่า 1 รายการ)</span></label>
             <div class="check-grid">
               <label class="check-item"><input type="checkbox" value="CB" class="equip-cb"> CB</label>
@@ -510,6 +491,10 @@
               <label class="check-item"><input type="checkbox" value="DF" class="equip-cb"> DF</label>
             </div>
             <input type="text" id="equipmentOther" placeholder="อื่นๆ ระบุเพิ่มเติม (ถ้ามี)">
+          </div>
+          <div class="field">
+            <label for="cause">สาเหตุ <span class="opt">(ไม่บังคับ)</span></label>
+            <input type="text" id="cause" placeholder="เช่น น้ำท่วมฐานเสา, ต้นไม้ล้มทับสาย">
           </div>
         </fieldset>
 
@@ -534,6 +519,10 @@
               <label for="meters">มิเตอร์ปลด/ชำรุด (เครื่อง)</label>
               <input type="number" id="meters" min="0" step="1" value="0">
             </div>
+          </div>
+          <div class="field">
+            <label for="affectedArea">พื้นที่เกิดไฟฟ้าดับ <span class="opt">(หมู่บ้าน/ถนน/ตำบล)</span></label>
+            <textarea id="affectedArea" placeholder="เช่น หมู่ 3-5 ต.ท่าทราย, ถนนสายหลักช่วง กม.12-15"></textarea>
           </div>
           <div class="row3">
             <div class="field">
@@ -678,15 +667,15 @@
           <p>สรุปผู้ใช้ไฟที่ได้รับผลกระทบและสถานะการจ่ายไฟคืน แยกตามจังหวัด &mdash; คลิกเพื่อกรองตารางด้านล่าง</p>
         </div>
         <div class="toggle-group">
-          <button type="button" class="toggle-btn active" data-view="list">📋 รายการ</button>
-          <button type="button" class="toggle-btn" data-view="map">🗺️ แผนที่</button>
+          <button type="button" class="toggle-btn" data-view="list">📋 รายการ</button>
+          <button type="button" class="toggle-btn active" data-view="map">🗺️ แผนที่</button>
         </div>
       </div>
 
-      <div class="province-view" id="provinceViewList">
+      <div class="province-view" id="provinceViewList" style="display:none;">
         <div class="province-list" id="provinceList"></div>
       </div>
-      <div class="province-view" id="provinceViewMap" style="display:none;">
+      <div class="province-view" id="provinceViewMap">
         <div class="map-body">
           <div class="map-wrap">
             <div class="map-visual">
@@ -791,21 +780,17 @@
           <fieldset>
             <legend>ข้อมูลเบื้องต้น</legend>
             <div class="field">
-              <label for="poleProvince">จังหวัดที่เกิดเหตุ *</label>
-              <select id="poleProvince" required>
-                <option value="" disabled selected>เลือกจังหวัด</option>
-                <option>อุทัยธานี</option>
-                <option>นครสวรรค์</option>
-                <option>ชัยนาท</option>
-                <option>ลพบุรี</option>
-                <option>สิงห์บุรี</option>
-                <option>เพชรบูรณ์</option>
+              <label for="polePeaHub">การไฟฟ้าจุดรวมงาน *</label>
+              <select id="polePeaHub" required>
+                <option value="" disabled selected>เลือกการไฟฟ้าจุดรวมงาน</option>
               </select>
+              <div class="hint" id="polePeaHubProvinceHint"></div>
+              <input type="hidden" id="poleProvince">
             </div>
             <div class="field">
-              <label for="poleArea">พื้นที่ กฟฟ. <span class="opt">(ถ้าทราบ)</span></label>
+              <label for="poleArea">การไฟฟ้าที่รับผิดชอบ <span class="opt">(ถ้าทราบ)</span></label>
               <select id="poleArea" disabled>
-                <option value="" selected>เลือกจังหวัดก่อน</option>
+                <option value="" selected>เลือกการไฟฟ้าจุดรวมงานก่อน</option>
               </select>
             </div>
             <div class="row2">
@@ -1141,44 +1126,83 @@
 
   var PROVINCE_ORDER = ["เพชรบูรณ์","นครสวรรค์","อุทัยธานี","ชัยนาท","สิงห์บุรี","ลพบุรี"];
 
-  // รายชื่อ กฟฟ./กฟส. ที่รับผิดชอบ แยกตามจังหวัด ใช้ทำดรอปดาวน์แบบเลือกจังหวัดก่อนแล้วค่อยกรองพื้นที่ กฟฟ.
-  var PROVINCE_PEA_MAP = {
-    "นครสวรรค์": ["กฟจ.นครสวรรค์","กฟส.หนองบัว","กฟส.ท่าตะโก","กฟส.ชุมแสง","กฟส.บรรพตพิสัย","กฟส.พยุหะคีรี","กฟส.ไพศาลี","กฟส.เก้าเลี้ยว","กฟส.โกรกพระ","กฟส.ตาคลี","กฟส.ตากฟ้า","กฟส.หัวหวาย","กฟส.ช่องแค","กฟส.ลาดยาว","กฟส.บ้านหนองเบน","กฟส.แม่วงก์","กฟส.ชุมตาบง","กฟส.แม่เปิน"],
-    "ลพบุรี": ["กฟจ.ลพบุรี","กฟส.ท่าวุ้ง","กฟส.โคกสำโรง","กฟส.หนองม่วง","กฟส.บ้านหมี่","กฟส.สระโบสถ์","กฟส.โคกเจริญ","กฟส.พัฒนานิคม","กฟส.บ้านแก่งเสือเต้น","กฟส.ชัยบาดาล","กฟส.ท่าหลวง","กฟส.ลำสนธิ"],
-    "ชัยนาท": ["กฟจ.ชัยนาท","กฟส.สรรคบุรี","กฟส.วัดสิงห์","กฟส.มโนรมย์","กฟส.หันคา","กฟส.สรรพยา","กฟส.เนินขาม","กฟส.หนองมะโมง"],
-    "อุทัยธานี": ["กฟจ.อุทัยธานี","กฟส.หนองฉาง","กฟส.ลานสัก","กฟส.บ้านไร่","กฟส.ทัพทัน","กฟส.สว่างอารมณ์","กฟส.เมืองการุ้ง","กฟส.หนองขาหย่าง","กฟส.ห้วยคต"],
-    "เพชรบูรณ์": ["กฟจ.เพชรบูรณ์","กฟส.ชนแดน","กฟส.เขาค้อ","กฟส.วังโป่ง","กฟส.วังชมภู","กฟส.หนองไผ่","กฟส.วิเชียรบุรี","กฟส.ศรีเทพ","กฟส.บึงสามพัน","กฟส.พุเตย","กฟส.หล่มสัก","กฟส.หล่มเก่า","กฟส.แคมป์สน","กฟส.น้ำหนาว","กฟส.บ้านกลาง","กฟส.ตาดกลอย"],
-    "สิงห์บุรี": ["กฟจ.สิงห์บุรี","กฟส.พรหมบุรี","กฟส.อินทร์บุรี","กฟส.ค่ายบางระจัน","กฟส.บางระจัน","กฟส.ท่าช้าง"]
-  };
+  // รายชื่อ "การไฟฟ้าจุดรวมงาน" (กฟฟ.หลักที่รวมพื้นที่ใกล้เคียง) พร้อมจังหวัดที่สังกัด และรายชื่อ
+  // "การไฟฟ้าที่รับผิดชอบ" ย่อยภายใต้จุดรวมงานนั้น — ผู้ใช้เลือกจุดรวมงานก่อน ระบบจะกรอกจังหวัดให้อัตโนมัติ
+  // (ไม่ต้องเลือกจังหวัดเองอีกต่อไป) แล้วค่อยเลือกการไฟฟ้าที่รับผิดชอบ (ถ้าทราบ) จากรายการที่กรองแล้ว
+  var HUB_DATA = [
+    {hub:"กฟจ.เพชรบูรณ์", province:"เพชรบูรณ์", offices:["กฟจ.เพชรบูรณ์","กฟส.ชนแดน","กฟส.เขาค้อ","กฟส.วังโป่ง","กฟส.วังชมภู"]},
+    {hub:"กฟส.หนองไผ่", province:"เพชรบูรณ์", offices:["กฟส.หนองไผ่"]},
+    {hub:"กฟส.บึงสามพัน", province:"เพชรบูรณ์", offices:["กฟส.วิเชียรบุรี","กฟส.ศรีเทพ","กฟส.บึงสามพัน","กฟส.พุเตย"]},
+    {hub:"กฟส.หล่มสัก", province:"เพชรบูรณ์", offices:["กฟส.หล่มสัก","กฟส.หล่มเก่า","กฟส.แคมป์สน","กฟส.น้ำหนาว","กฟส.บ้านกลาง","กฟส.ตาดกลอย"]},
+    {hub:"กฟจ.นครสวรรค์", province:"นครสวรรค์", offices:["กฟจ.นครสวรรค์","กฟส.หนองบัว","กฟส.ท่าตะโก","กฟส.ชุมแสง","กฟส.บรรพตพิสัย","กฟส.พยุหะคีรี","กฟส.ไพศาลี","กฟส.เก้าเลี้ยว","กฟส.โกรกพระ"]},
+    {hub:"กฟส.ตาคลี", province:"นครสวรรค์", offices:["กฟส.ตาคลี","กฟส.ตากฟ้า","กฟส.หัวหวาย","กฟส.ช่องแค"]},
+    {hub:"กฟส.ลาดยาว", province:"นครสวรรค์", offices:["กฟส.ลาดยาว","กฟส.บ้านหนองเบน","กฟส.แม่วงก์","กฟส.ชุมตาบง","กฟส.แม่เปิน"]},
+    {hub:"กฟจ.อุทัยธานี", province:"อุทัยธานี", offices:["กฟจ.อุทัยธานี","กฟส.หนองฉาง","กฟส.ลานสัก","กฟส.บ้านไร่","กฟส.ทัพทัน","กฟส.สว่างอารมณ์","กฟส.เมืองการุ้ง","กฟส.หนองขาหย่าง","กฟส.ห้วยคต"]},
+    {hub:"กฟจ.ชัยนาท", province:"ชัยนาท", offices:["กฟจ.ชัยนาท","กฟส.สรรคบุรี","กฟส.วัดสิงห์","กฟส.มโนรมย์","กฟส.หันคา","กฟส.สรรพยา","กฟส.เนินขาม","กฟส.หนองมะโมง"]},
+    {hub:"กฟจ.สิงห์บุรี", province:"สิงห์บุรี", offices:["กฟจ.สิงห์บุรี","กฟส.พรหมบุรี","กฟส.อินทร์บุรี","กฟส.ค่ายบางระจัน","กฟส.บางระจัน","กฟส.ท่าช้าง"]},
+    {hub:"กฟจ.ลพบุรี", province:"ลพบุรี", offices:["กฟจ.ลพบุรี","กฟส.ท่าวุ้ง"]},
+    {hub:"กฟส.โคกสำโรง", province:"ลพบุรี", offices:["กฟส.โคกสำโรง","กฟส.หนองม่วง","กฟส.บ้านหมี่","กฟส.สระโบสถ์","กฟส.โคกเจริญ"]},
+    {hub:"กฟส.พัฒนานิคม", province:"ลพบุรี", offices:["กฟส.พัฒนานิคม","กฟส.บ้านแก่งเสือเต้น"]},
+    {hub:"กฟส.ชัยบาดาล", province:"ลพบุรี", offices:["กฟส.ชัยบาดาล","กฟส.ท่าหลวง","กฟส.ลำสนธิ"]}
+  ];
 
-  // เลือกจังหวัดก่อน แล้วค่อยกรอง select กฟฟ./กฟส. ให้เหลือเฉพาะสาขาที่ขึ้นกับจังหวัดนั้น
-  function wireProvincePeaCascade(provinceSel, peaSel){
+  var HUB_TO_PROVINCE = {};
+  var HUB_TO_OFFICES = {};
+  HUB_DATA.forEach(function(row){
+    HUB_TO_PROVINCE[row.hub] = row.province;
+    HUB_TO_OFFICES[row.hub] = row.offices;
+  });
+
+  // เติม <option> ของ select "การไฟฟ้าจุดรวมงาน" โดยจัดกลุ่ม (optgroup) ตามจังหวัดเพื่อให้หาเจอง่าย
+  function populateHubSelect(hubSel){
+    PROVINCE_ORDER.forEach(function(province){
+      var group = document.createElement("optgroup");
+      group.label = province;
+      HUB_DATA.forEach(function(row){
+        if(row.province !== province) return;
+        var opt = document.createElement("option");
+        opt.value = row.hub;
+        opt.textContent = row.hub;
+        group.appendChild(opt);
+      });
+      hubSel.appendChild(group);
+    });
+  }
+
+  // เลือก "การไฟฟ้าจุดรวมงาน" ก่อน ระบบจะเติมจังหวัด (ลง input ที่ซ่อนไว้ เพื่อบันทึกลงชีตเหมือนเดิม
+  // สำหรับใช้แสดงผลที่แผนที่) ให้อัตโนมัติ แล้วค่อยกรอง select "การไฟฟ้าที่รับผิดชอบ" ให้เหลือเฉพาะสาขาย่อย
+  function wireHubCascade(hubSel, officeSel, provinceHidden, provinceHint){
+    populateHubSelect(hubSel);
     function setOptions(list, placeholderText, disabled){
-      peaSel.innerHTML = "";
+      officeSel.innerHTML = "";
       var opt0 = document.createElement("option");
       opt0.value = "";
       opt0.selected = true;
       opt0.textContent = placeholderText;
-      peaSel.appendChild(opt0);
+      officeSel.appendChild(opt0);
       list.forEach(function(name){
         var opt = document.createElement("option");
         opt.value = name;
         opt.textContent = name;
-        peaSel.appendChild(opt);
+        officeSel.appendChild(opt);
       });
-      peaSel.disabled = disabled;
+      officeSel.disabled = disabled;
     }
     function refresh(){
-      var list = PROVINCE_PEA_MAP[provinceSel.value];
-      if(list){
-        setOptions(list, "ไม่ระบุ", false);
+      var hub = hubSel.value;
+      var offices = HUB_TO_OFFICES[hub];
+      var province = HUB_TO_PROVINCE[hub] || "";
+      if(provinceHidden){ provinceHidden.value = province; }
+      if(provinceHint){ provinceHint.textContent = province ? ("จังหวัด: " + province) : ""; }
+      if(offices){
+        setOptions(offices, "ไม่ระบุ", false);
       } else {
-        setOptions([], "เลือกจังหวัดก่อน", true);
+        setOptions([], "เลือกการไฟฟ้าจุดรวมงานก่อน", true);
       }
     }
-    provinceSel.addEventListener("change", refresh);
-    if(provinceSel.form){
-      provinceSel.form.addEventListener("reset", function(){ setTimeout(refresh, 0); });
+    hubSel.addEventListener("change", refresh);
+    if(hubSel.form){
+      hubSel.form.addEventListener("reset", function(){ setTimeout(refresh, 0); });
     }
     refresh();
   }
@@ -1223,7 +1247,7 @@
     status: "all",
     sortKey: "timestamp",
     sortDir: "desc",
-    provinceView: "list",
+    provinceView: "map",
     byProvince: {}
   };
 
@@ -1677,9 +1701,6 @@
   }
 
   // ================= FORM TAB =================
-  document.getElementById("eventType").addEventListener("change", function(){
-    document.getElementById("eventTypeOther").style.display = (this.value === "อื่นๆ") ? "block" : "none";
-  });
   document.getElementById("system").addEventListener("change", function(){
     document.getElementById("systemOther").style.display = (this.value === "อื่นๆ") ? "block" : "none";
   });
@@ -1698,7 +1719,7 @@
 
   var form = document.getElementById("reportForm");
   var btnSubmit = document.getElementById("btnSubmit");
-  wireProvincePeaCascade(document.getElementById("province"), document.getElementById("pea"));
+  wireHubCascade(document.getElementById("peaHub"), document.getElementById("pea"), document.getElementById("province"), document.getElementById("peaHubProvinceHint"));
 
   form.addEventListener("submit", function(ev){
     ev.preventDefault();
@@ -1711,6 +1732,7 @@
     var equipment = Array.prototype.slice.call(document.querySelectorAll(".equip-cb:checked")).map(function(el){ return el.value; });
 
     var payload = {
+      peaHub: document.getElementById("peaHub").value,
       pea: document.getElementById("pea").value.trim(),
       province: document.getElementById("province").value,
       date: document.getElementById("date").value,
@@ -1721,7 +1743,6 @@
       systemOther: document.getElementById("systemOther").value.trim(),
       affectedArea: document.getElementById("affectedArea").value.trim(),
       eventType: document.getElementById("eventType").value,
-      eventTypeOther: document.getElementById("eventTypeOther").value.trim(),
       cause: document.getElementById("cause").value.trim(),
       equipment: equipment,
       equipmentOther: document.getElementById("equipmentOther").value.trim(),
@@ -1757,7 +1778,6 @@
         setMsg("ok", "บันทึกรายงานเรียบร้อยแล้ว ขอบคุณสำหรับข้อมูล");
         form.reset();
         stillOutTouched = false;
-        document.getElementById("eventTypeOther").style.display = "none";
         document.getElementById("systemOther").style.display = "none";
         btnSubmit.disabled = false;
         btnSubmit.textContent = "บันทึกรายงาน";
@@ -2143,7 +2163,7 @@
   });
 
   var poleForm = document.getElementById("poleForm");
-  wireProvincePeaCascade(document.getElementById("poleProvince"), document.getElementById("poleArea"));
+  wireHubCascade(document.getElementById("polePeaHub"), document.getElementById("poleArea"), document.getElementById("poleProvince"), document.getElementById("polePeaHubProvinceHint"));
   var btnPoleSubmit = document.getElementById("btnPoleSubmit");
 
   poleForm.addEventListener("submit", function(ev){
@@ -2168,6 +2188,7 @@
 
     var payload = {
       formType: "pole",
+      peaHub: document.getElementById("polePeaHub").value,
       peaArea: document.getElementById("poleArea").value.trim(),
       province: document.getElementById("poleProvince").value,
       date: document.getElementById("poleDate").value,
